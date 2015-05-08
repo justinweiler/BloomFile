@@ -21,7 +21,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("BloomFile")]
-[assembly: AssemblyDescription("A fast flat file data store using a probabalistic Bloom filter hierarchy")]
+[assembly: AssemblyDescription("A fast flat file data store using a probabilistic Bloom filter hierarchy")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("PhrenoLogix")]
 [assembly: AssemblyProduct("BloomFile")]
