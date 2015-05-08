@@ -13,19 +13,17 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using System;
 using System.Collections.Generic;
 using System.IO;
-
 
 namespace Phrenologix
 {
     internal class branchReaderWriter
     {
-        private fileStorage     _fileStorageBranch;
-        private byte[]          _theBuffer = new byte[ioConstants.branchOverhead];
-        internal static bool    doComputeChecksum;
+        private fileStorage _fileStorageBranch;
+        private byte[] _theBuffer = new byte[ioConstants.branchOverhead];
+        internal static bool doComputeChecksum;
 
         internal branchReaderWriter(fileStorage fileStorageBranch)
         {
@@ -34,10 +32,10 @@ namespace Phrenologix
 
         unsafe internal byte[] readBranchFromFile(out long branchFilePosition, out byte level, out DateTime timestamp, out long blossomFilePosition, out int blossomID)
         {
-            level               = 0;
-            timestamp           = DateTime.MinValue;
+            level = 0;
+            timestamp = DateTime.MinValue;
             blossomFilePosition = 0;
-            blossomID           = 0;
+            blossomID = 0;
 
             byte[] dataBytes = null;
 
@@ -72,12 +70,12 @@ namespace Phrenologix
                     }
                 }
 
-                level                    = *(branchHeaderBytes + 4);                                // read level
-                timestamp                = DateTime.FromBinary(*((long*)(branchHeaderBytes + 5)));  // read timestamp
-                var checksum             = *((uint*)(branchHeaderBytes + 13));                      // read checksum
-                blossomFilePosition      = *((long*)(branchHeaderBytes + 17));                      // read blossomFilePosition
-                blossomID                = *((int*)(branchHeaderBytes + 25));                       // read blossomID
-                var dataBytesLength      = *((int*)(branchHeaderBytes + 29));                       // read data length
+                level = *(branchHeaderBytes + 4);                                // read level
+                timestamp = DateTime.FromBinary(*((long*)(branchHeaderBytes + 5)));  // read timestamp
+                var checksum = *((uint*)(branchHeaderBytes + 13));                      // read checksum
+                blossomFilePosition = *((long*)(branchHeaderBytes + 17));                      // read blossomFilePosition
+                blossomID = *((int*)(branchHeaderBytes + 25));                       // read blossomID
+                var dataBytesLength = *((int*)(branchHeaderBytes + 29));                       // read data length
 
                 if (dataBytesLength <= 0)
                 {
@@ -120,13 +118,13 @@ namespace Phrenologix
                 }
 
                 // write branch header
-                *((uint*)(theBufferBytes + 0))  = ioConstants.startOfBranchMarker;      // start of branch marker BRCH
-                *(theBufferBytes + 4)           = level;                                // write level
-                *((long*)(theBufferBytes + 5))  = timestamp.ToBinary();                 // write timestamp
+                *((uint*)(theBufferBytes + 0)) = ioConstants.startOfBranchMarker;      // start of branch marker BRCH
+                *(theBufferBytes + 4) = level;                                // write level
+                *((long*)(theBufferBytes + 5)) = timestamp.ToBinary();                 // write timestamp
                 *((uint*)(theBufferBytes + 13)) = checksum;                             // write checksum
                 *((long*)(theBufferBytes + 17)) = blossomFilePosition;                  // write blossomFilePosition
-                *((int*)(theBufferBytes + 25))  = blossomID;                            // write blossomID
-                *((int*)(theBufferBytes + 29))  = dataBytes.Length;                     // write data length
+                *((int*)(theBufferBytes + 25)) = blossomID;                            // write blossomID
+                *((int*)(theBufferBytes + 29)) = dataBytes.Length;                     // write data length
 
                 // write data to file
                 _fileStorageBranch.write(branchFilePosition, _theBuffer);

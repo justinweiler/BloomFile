@@ -18,19 +18,19 @@ namespace Phrenologix
 {
     internal class ioConstants
     {
-        internal static byte[]  fenceKeyBytes           = HashKey.Max.ToBytes();
-        internal static HashKey fenceKey                = HashKey.Max;
-        internal const int      bloomFileOverhead       = 49;
-        internal const int      branchOverhead          = 33;
-        internal const int      blossomOverhead         = 16;
-        internal const uint     startOfBloomFileMarker  = (uint)0x464D4C42;  // BLMF
-        internal const uint     startOfBlossomMarker    = (uint)0x4D534C42;  // BLSM
-        internal const uint     startOfBranchMarker     = (uint)0x48435242;  // BRCH
+        internal static byte[] fenceKeyBytes = HashKey.Max.ToBytes();
+        internal static HashKey fenceKey = HashKey.Max;
+        internal const int bloomFileOverhead = 49;
+        internal const int branchOverhead = 33;
+        internal const int blossomOverhead = 16;
+        internal const uint startOfBloomFileMarker = (uint)0x464D4C42; // BLMF
+        internal const uint startOfBlossomMarker = (uint)0x4D534C42; // BLSM
+        internal const uint startOfBranchMarker = (uint)0x48435242; // BRCH
 
         internal static int computeTotalBufferSize(int keyCapacity, int averageDataItemSize, double averageDataItemSizeSlack, out int bloomFileBlockStartPosition)
         {
-            var bloomFileBlockSize = (int)((double)((averageDataItemSize * averageDataItemSizeSlack) + ioConstants.bloomFileOverhead) * (double)keyCapacity);            
-            var keyBlockSize    = computeKeyBlockSize(keyCapacity, true);
+            var bloomFileBlockSize = (int)((double)((averageDataItemSize * averageDataItemSizeSlack) + ioConstants.bloomFileOverhead) * (double)keyCapacity);
+            var keyBlockSize = computeKeyBlockSize(keyCapacity, true);
 
             bloomFileBlockStartPosition = keyBlockSize;
 
@@ -40,7 +40,7 @@ namespace Phrenologix
             // round to memory page of 4096 bytes
             if (totalBufferSize % 4096 > 0)
             {
-                int alu         = (totalBufferSize / 4096) + 1;
+                int alu = (totalBufferSize / 4096) + 1;
                 totalBufferSize = alu * 4096;
             }
 
@@ -51,6 +51,6 @@ namespace Phrenologix
         {
             // BLSM + blossom id + actual file block size + keys used + (capacity * key/location) + fence
             return blossomOverhead + (keysUsed * (24)) + (includeFence ? 20 : 0);
-        }        
+        }
     }
 }

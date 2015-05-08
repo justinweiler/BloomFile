@@ -13,9 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using System;
-
 
 namespace Phrenologix
 {
@@ -61,7 +59,7 @@ namespace Phrenologix
         internal bloomFileBlossom(int blossomID, long blossomFilePosition, int keyCapacity, float errorRate, byte[] hashBits = null, long branchFilePosition = 0) :
             base(branchFilePosition, 1, keyCapacity, errorRate, hashBits)
         {
-            this.blossomID       = blossomID;
+            this.blossomID = blossomID;
             _blossomFilePosition = blossomFilePosition;
         }
 
@@ -138,7 +136,7 @@ namespace Phrenologix
                 }
 
                 return updated;
-            }        
+            }
         }
 
         internal Status deleteBloomFileToCreator(blossomReaderWriter blossomCreator, HashKey key, bool flush)
@@ -180,7 +178,7 @@ namespace Phrenologix
                 }
 
                 return deleted;
-            }        
+            }
         }
 
         internal override bool containsKey(HashKey key, blossomReaderWriter blossomReaderWriter)

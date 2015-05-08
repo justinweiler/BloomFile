@@ -13,25 +13,23 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using System;
 using System.IO;
 using System.Xml;
-
 
 namespace Phrenologix
 {
     internal class settings
     {
-        internal float   blossomKeyCapacity;
-        internal float   errorRate;
-        internal float   padFactor;
-        internal int     averageDataItemSize;
-        internal float   averageDataItemSizeSlack;
-        internal bool    doComputeChecksum;
-        internal byte[]  branchFactors;
-        internal long    initialFileSize; 
-        internal long    growFileSize;
+        internal float blossomKeyCapacity;
+        internal float errorRate;
+        internal float padFactor;
+        internal int averageDataItemSize;
+        internal float averageDataItemSizeSlack;
+        internal bool doComputeChecksum;
+        internal byte[] branchFactors;
+        internal long initialFileSize;
+        internal long growFileSize;
 
         internal void saveSettings(string filePath)
         {
@@ -39,15 +37,15 @@ namespace Phrenologix
             var settings = xmlDoc.CreateElement("Settings");
             xmlDoc.AppendChild(settings);
 
-            settings.AppendChild(xmlDoc.CreateElement("BlossomKeyCapacity")).InnerXml   = blossomKeyCapacity.ToString();
-            settings.AppendChild(xmlDoc.CreateElement("ErrorRate")).InnerXml            = errorRate.ToString();
-            settings.AppendChild(xmlDoc.CreateElement("PadFactor")).InnerXml            = padFactor.ToString();
-            settings.AppendChild(xmlDoc.CreateElement("AvgDataItemSize")).InnerXml      = averageDataItemSize.ToString();
+            settings.AppendChild(xmlDoc.CreateElement("BlossomKeyCapacity")).InnerXml = blossomKeyCapacity.ToString();
+            settings.AppendChild(xmlDoc.CreateElement("ErrorRate")).InnerXml = errorRate.ToString();
+            settings.AppendChild(xmlDoc.CreateElement("PadFactor")).InnerXml = padFactor.ToString();
+            settings.AppendChild(xmlDoc.CreateElement("AvgDataItemSize")).InnerXml = averageDataItemSize.ToString();
             settings.AppendChild(xmlDoc.CreateElement("AvgDataItemSizeSlack")).InnerXml = averageDataItemSizeSlack.ToString();
-            settings.AppendChild(xmlDoc.CreateElement("ComputeChecksum")).InnerXml      = doComputeChecksum.ToString();
-            settings.AppendChild(xmlDoc.CreateElement("BranchFactors")).InnerXml        = Convert.ToBase64String(branchFactors);
-            settings.AppendChild(xmlDoc.CreateElement("InitialFileSize")).InnerXml      = initialFileSize.ToString();
-            settings.AppendChild(xmlDoc.CreateElement("GrowFileSize")).InnerXml         = growFileSize.ToString();
+            settings.AppendChild(xmlDoc.CreateElement("ComputeChecksum")).InnerXml = doComputeChecksum.ToString();
+            settings.AppendChild(xmlDoc.CreateElement("BranchFactors")).InnerXml = Convert.ToBase64String(branchFactors);
+            settings.AppendChild(xmlDoc.CreateElement("InitialFileSize")).InnerXml = initialFileSize.ToString();
+            settings.AppendChild(xmlDoc.CreateElement("GrowFileSize")).InnerXml = growFileSize.ToString();
 
             xmlDoc.Save(filePath + ".xml");
         }
@@ -55,18 +53,18 @@ namespace Phrenologix
         internal void loadSettings(string filePath)
         {
             XmlDocument xmlDoc = new XmlDocument();
-            
+
             xmlDoc.Load(filePath + ".xml");
 
-            blossomKeyCapacity       = float.Parse(xmlDoc.SelectSingleNode("Settings/BlossomKeyCapacity").InnerXml);
-            errorRate                = float.Parse(xmlDoc.SelectSingleNode("Settings/ErrorRate").InnerXml);
-            padFactor                = float.Parse(xmlDoc.SelectSingleNode("Settings/PadFactor").InnerXml);
-            averageDataItemSize      = int.Parse(xmlDoc.SelectSingleNode("Settings/AvgDataItemSize").InnerXml);
+            blossomKeyCapacity = float.Parse(xmlDoc.SelectSingleNode("Settings/BlossomKeyCapacity").InnerXml);
+            errorRate = float.Parse(xmlDoc.SelectSingleNode("Settings/ErrorRate").InnerXml);
+            padFactor = float.Parse(xmlDoc.SelectSingleNode("Settings/PadFactor").InnerXml);
+            averageDataItemSize = int.Parse(xmlDoc.SelectSingleNode("Settings/AvgDataItemSize").InnerXml);
             averageDataItemSizeSlack = float.Parse(xmlDoc.SelectSingleNode("Settings/AvgDataItemSizeSlack").InnerXml);
-            doComputeChecksum        = bool.Parse(xmlDoc.SelectSingleNode("Settings/ComputeChecksum").InnerXml);
-            branchFactors            = Convert.FromBase64String(xmlDoc.SelectSingleNode("Settings/BranchFactors").InnerXml);
-            initialFileSize          = long.Parse(xmlDoc.SelectSingleNode("Settings/InitialFileSize").InnerXml);
-            growFileSize             = long.Parse(xmlDoc.SelectSingleNode("Settings/GrowFileSize").InnerXml);
+            doComputeChecksum = bool.Parse(xmlDoc.SelectSingleNode("Settings/ComputeChecksum").InnerXml);
+            branchFactors = Convert.FromBase64String(xmlDoc.SelectSingleNode("Settings/BranchFactors").InnerXml);
+            initialFileSize = long.Parse(xmlDoc.SelectSingleNode("Settings/InitialFileSize").InnerXml);
+            growFileSize = long.Parse(xmlDoc.SelectSingleNode("Settings/GrowFileSize").InnerXml);
         }
     }
 }

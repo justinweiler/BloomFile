@@ -13,24 +13,22 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using System;
 using System.Collections.Generic;
-
 
 namespace Phrenologix
 {
     internal class bloomFileBranch
     {
-        private List<bloomFileBranch>  _branchList;
-        private bloomFileBranch        _parent;
-        private byte                _level;   
-        private byte[]              _hashBits;
-        private long                _branchFilePosition;
-        private int                 _bitCount;
-        protected volatile byte     dirty;
-        private static byte         _hashFunctionCount;
-        internal static byte[]      branchFactors;
+        private List<bloomFileBranch> _branchList;
+        private bloomFileBranch _parent;
+        private byte _level;
+        private byte[] _hashBits;
+        private long _branchFilePosition;
+        private int _bitCount;
+        protected volatile byte dirty;
+        private static byte _hashFunctionCount;
+        internal static byte[] branchFactors;
 
 #if TRACKFP
         private int              _falsePositives = 0;
@@ -91,9 +89,9 @@ namespace Phrenologix
                 _hashBits = new byte[(int)Math.Ceiling((double)m / 8)];
             }
 
-            _level                   = level;
-            _hashFunctionCount       = (byte)k;
-            _bitCount                = _hashBits.Length << 3;
+            _level = level;
+            _hashFunctionCount = (byte)k;
+            _bitCount = _hashBits.Length << 3;
             _branchFilePosition = branchFilePosition;
 
 #if TRACKFP && TRACKFPLOOKUP
@@ -143,18 +141,18 @@ namespace Phrenologix
                 dirty &= 0xEF;
 
                 if (_branchFilePosition == 0)
-                {                    
-                    _branchFilePosition    = lastBranchFilePosition;
+                {
+                    _branchFilePosition = lastBranchFilePosition;
                     lastBranchFilePosition = readWriteBranch.advanceNextBranchFilePosition(ioConstants.branchOverhead + _hashBits.Length);
                 }
 
                 long blossomFilePosition = 0;
-                int blossomID            = 0;
+                int blossomID = 0;
 
                 if (this is bloomFileBlossom)
                 {
                     blossomFilePosition = ((bloomFileBlossom)this).blossomFilePosition;
-                    blossomID           = ((bloomFileBlossom)this).blossomID;
+                    blossomID = ((bloomFileBlossom)this).blossomID;
                 }
 
                 readWriteBranch.writeBranchToFile(_branchFilePosition, _hashBits, _level, timestamp, blossomFilePosition, blossomID);
@@ -177,7 +175,7 @@ namespace Phrenologix
             {
                 _branchList = new List<bloomFileBranch>(branchFactors[level - 1]);
             }
-            
+
             _branchList.Add(child);
             child._parent = this;
         }
@@ -258,12 +256,12 @@ namespace Phrenologix
             }
 #endif
         }
-        
+
         internal virtual bool containsKey(HashKey key, blossomReaderWriter blossomReaderWriter)
         {
-            int primaryHash   = key.GetHashCode();
+            int primaryHash = key.GetHashCode();
             int secondaryHash = key.GetHashCode(_level);
-            
+
             for (int i = 0; i < _hashFunctionCount; i++)
             {
                 int hash = _computeHash(primaryHash, secondaryHash, i);
@@ -273,7 +271,7 @@ namespace Phrenologix
                     return false;
                 }
             }
-            
+
             return true;
         }
 
@@ -294,7 +292,7 @@ namespace Phrenologix
         private void _addKey(HashKey key)
         {
             // start flipping bits for each hash of item
-            int primaryHash   = key.GetHashCode();
+            int primaryHash = key.GetHashCode();
             int secondaryHash = key.GetHashCode(_level);
 
             for (int i = 0; i < _hashFunctionCount; i++)
@@ -321,7 +319,7 @@ namespace Phrenologix
         }
 
         private static int _bestM(int keyCapacity, float errorRate)
-        { 
+        {
             return (int)Math.Ceiling(keyCapacity * Math.Log(errorRate, (1.0 / Math.Pow(2, Math.Log(2.0)))));
         }
 

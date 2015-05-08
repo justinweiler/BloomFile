@@ -13,20 +13,18 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace Phrenologix.Lib
 {
     [Serializable]
     public class FieldCorruptException : Exception
     {
-        public FieldCorruptException(string value) : 
+        public FieldCorruptException(string value) :
             base(string.Format("The value for field [{0}] is corrupt", value))
         {
         }

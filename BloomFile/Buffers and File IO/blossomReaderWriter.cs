@@ -13,7 +13,6 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using Phrenologix.Lib;
 using System;
 using System.Collections.Generic;
@@ -21,29 +20,28 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
-
 namespace Phrenologix
 {
     internal class blossomReaderWriter
     {
-        private int                         _keyCapacity;
-        private int                         _keysUsed;
-        private byte[]                      _theBuffer;
-        private fileStorage                 _fileStorageBlossom;
-        private int                         _bloomFileBlockStartPosition;
-        private int                         _bloomFileBlockEndPosition;
-        private int                         _blossomID;
-        internal SortedList<HashKey, int>   bloomFileBlockOffsetLookup;
-        internal static bool                doComputeChecksum;
-        internal static TimeSpan            timeSlipWindow = TimeSpan.FromSeconds(30);
+        private int _keyCapacity;
+        private int _keysUsed;
+        private byte[] _theBuffer;
+        private fileStorage _fileStorageBlossom;
+        private int _bloomFileBlockStartPosition;
+        private int _bloomFileBlockEndPosition;
+        private int _blossomID;
+        internal SortedList<HashKey, int> bloomFileBlockOffsetLookup;
+        internal static bool doComputeChecksum;
+        internal static TimeSpan timeSlipWindow = TimeSpan.FromSeconds(30);
 
         internal blossomReaderWriter(fileStorage fileStorageBlossom, int keyCapacity, int totalBufferSize, int bloomFileBlockStartPosition, bool createAsCurrent)
         {
-            _keyCapacity                 = keyCapacity;
-            _fileStorageBlossom          = fileStorageBlossom;
-            _theBuffer                   = new byte[totalBufferSize];  // last 4 bytes here are for reverse traversal
+            _keyCapacity = keyCapacity;
+            _fileStorageBlossom = fileStorageBlossom;
+            _theBuffer = new byte[totalBufferSize];  // last 4 bytes here are for reverse traversal
             _bloomFileBlockStartPosition = bloomFileBlockStartPosition;
-            _bloomFileBlockEndPosition   = _bloomFileBlockStartPosition;
+            _bloomFileBlockEndPosition = _bloomFileBlockStartPosition;
 
             if (createAsCurrent == true)
             {
@@ -73,35 +71,35 @@ namespace Phrenologix
                 int dataSlotSize = (int)(dataBytes.Length * slackFactor);
 
                 // write bloomFile header
-                *((uint*)(bloomFileHeaderBytes + 0))  = ioConstants.startOfBloomFileMarker; // start of bloomFile marker BLMF
-                *(bloomFileHeaderBytes + 4)           = recordType;                         // write recordType
-                *((long*)(bloomFileHeaderBytes + 5))  = timestamp.ToBinary();               // write timestamp
-                *((int*)(bloomFileHeaderBytes + 13))  = versionNo;                          // write versionNo
+                *((uint*)(bloomFileHeaderBytes + 0)) = ioConstants.startOfBloomFileMarker; // start of bloomFile marker BLMF
+                *(bloomFileHeaderBytes + 4) = recordType;                         // write recordType
+                *((long*)(bloomFileHeaderBytes + 5)) = timestamp.ToBinary();               // write timestamp
+                *((int*)(bloomFileHeaderBytes + 13)) = versionNo;                          // write versionNo
                 *((uint*)(bloomFileHeaderBytes + 17)) = key.uint1;                          // write key.uint1
                 *((uint*)(bloomFileHeaderBytes + 21)) = key.uint2;                          // write key.uint2
                 *((uint*)(bloomFileHeaderBytes + 25)) = key.uint3;                          // write key.uint3
                 *((uint*)(bloomFileHeaderBytes + 29)) = key.uint4;                          // write key.uint4
                 *((uint*)(bloomFileHeaderBytes + 33)) = key.uint5;                          // write key.uint5
                 *((uint*)(bloomFileHeaderBytes + 37)) = checksum;                           // write checksum
-                *((int*)(bloomFileHeaderBytes + 41))  = dataSlotSize;                       // write data slot size
-                *((int*)(bloomFileHeaderBytes + 45))  = dataBytes.Length;                   // write data length
+                *((int*)(bloomFileHeaderBytes + 41)) = dataSlotSize;                       // write data slot size
+                *((int*)(bloomFileHeaderBytes + 45)) = dataBytes.Length;                   // write data length
 
                 // write data and slack padding
                 var bloomFileDataBytes = bloomFileHeaderBytes + ioConstants.bloomFileOverhead;
-                var dataBytesCnt    = dataBytes.Length;
+                var dataBytesCnt = dataBytes.Length;
 
                 int i = 0;
 
                 // write data
                 for (; i < dataBytesCnt; i++)
                 {
-                    *(bloomFileDataBytes + i) = dataBytes[i];                             
+                    *(bloomFileDataBytes + i) = dataBytes[i];
                 }
 
                 // write slack padding
                 for (; i < dataSlotSize; i++)
                 {
-                    *(bloomFileDataBytes + i) = 0;                             
+                    *(bloomFileDataBytes + i) = 0;
                 }
 
                 // check if previously existed
@@ -126,15 +124,15 @@ namespace Phrenologix
         {
             // setup defaults
             recordType = 0;
-            timestamp  = DateTime.MinValue;
-            versionNo  = 0;
-            dataBytes  = null;
+            timestamp = DateTime.MinValue;
+            versionNo = 0;
+            dataBytes = null;
 
             fixed (byte* blossomHeaderBytes = _theBuffer)
             {
                 int sizeOfKeyBlock, sizeOfBloomFileBlock;
                 _readBlossomHeaderAndKeys(blossomFilePosition, blossomID, blossomHeaderBytes, out sizeOfKeyBlock, out sizeOfBloomFileBlock);
-            
+
                 // binary search for key, courtesy wikipedia
                 // continually narrow search until just one element remains
                 int iMin = 0;
@@ -170,7 +168,7 @@ namespace Phrenologix
                     {
                         iMax = iMid;
                     }
-                } 
+                }
             }
 
             return Status.KeyNotFound;
@@ -185,9 +183,9 @@ namespace Phrenologix
 
             // setup defaults
             recordType = 0;
-            timestamp  = DateTime.MinValue;
-            versionNo  = 0;
-            dataBytes  = null;
+            timestamp = DateTime.MinValue;
+            versionNo = 0;
+            dataBytes = null;
 
             int offset;
 
@@ -212,7 +210,7 @@ namespace Phrenologix
             {
                 int sizeOfKeyBlock, sizeOfBloomFileBlock;
                 _readBlossomHeaderAndKeys(blossomFilePosition, blossomID, blossomHeaderBytes, out sizeOfKeyBlock, out sizeOfBloomFileBlock);
-            
+
                 // binary search for key, courtesy wikipedia
                 // continually narrow search until just one element remains
                 int iMin = 0;
@@ -247,7 +245,7 @@ namespace Phrenologix
                     {
                         iMax = iMid;
                     }
-                } 
+                }
             }
 
             return Status.KeyNotFound;
@@ -282,7 +280,7 @@ namespace Phrenologix
             {
                 int sizeOfKeyBlock, sizeOfBloomFileBlock;
                 _readBlossomHeaderAndKeys(blossomFilePosition, blossomID, blossomHeaderBytes, out sizeOfKeyBlock, out sizeOfBloomFileBlock);
-            
+
                 // binary search for key, courtesy wikipedia
                 // continually narrow search until just one element remains
                 int iMin = 0;
@@ -317,7 +315,7 @@ namespace Phrenologix
                     {
                         iMax = iMid;
                     }
-                } 
+                }
             }
 
             return Status.KeyNotFound;
@@ -354,9 +352,9 @@ namespace Phrenologix
             }
 
             // reset fields to starting values
-            _blossomID                 = blossomID;
+            _blossomID = blossomID;
             _bloomFileBlockEndPosition = _bloomFileBlockStartPosition;
-            _keysUsed                  = 0;
+            _keysUsed = 0;
 
             bloomFileBlockOffsetLookup.Clear();
             bloomFileBlockOffsetLookup.Add(ioConstants.fenceKey, 0);
@@ -365,8 +363,8 @@ namespace Phrenologix
             {
                 // initialize or reset buffer
                 *((uint*)(blossomHeaderBytes + 0)) = ioConstants.startOfBlossomMarker;  // start of blossom marker BLSM
-                *((int*)(blossomHeaderBytes + 4))  = _blossomID;                        // blossom id
-                *((int*)(blossomHeaderBytes + 8))  = computeBlossomFileSize();          // actual blossom file size
+                *((int*)(blossomHeaderBytes + 4)) = _blossomID;                        // blossom id
+                *((int*)(blossomHeaderBytes + 8)) = computeBlossomFileSize();          // actual blossom file size
                 *((int*)(blossomHeaderBytes + 12)) = _keysUsed;                         // keys used
 
                 var keyDataBytes = blossomHeaderBytes + ioConstants.blossomOverhead;
@@ -399,7 +397,7 @@ namespace Phrenologix
                 for (int i = 0; i < _keysUsed; i++)
                 {
                     int offset;
-                    var key = _extractHashKey(keyDataBytes, i, out offset);                    
+                    var key = _extractHashKey(keyDataBytes, i, out offset);
                     bloomFileBlockOffsetLookup[key] = offset;
                 }
 
@@ -447,9 +445,9 @@ namespace Phrenologix
                 // got to end of block and write reverse traversal offset
                 _bloomFileBlockEndPosition += 4;
                 *((int*)(blossomHeaderBytes + (_bloomFileBlockEndPosition - 4))) = computeBlossomFileSize();
- 
+
                 // write actual blossom file size and keys used, write after BLSM marker and ID
-                *((int*)(blossomHeaderBytes + 8))  = computeBlossomFileSize();
+                *((int*)(blossomHeaderBytes + 8)) = computeBlossomFileSize();
                 *((int*)(blossomHeaderBytes + 12)) = _keysUsed;
 
                 // write sorted list of keys, include fence key
@@ -457,7 +455,7 @@ namespace Phrenologix
 
                 for (int i = 0; i <= _keysUsed; i++)
                 {
-                    var key    = bloomFileBlockOffsetLookup.Keys[i];
+                    var key = bloomFileBlockOffsetLookup.Keys[i];
                     var offset = bloomFileBlockOffsetLookup.Values[i];
 
                     // write key
@@ -485,12 +483,12 @@ namespace Phrenologix
 
         unsafe private static HashKey _extractHashKey(uint* keyDataBytes, int i, out int offset)
         {
-            uint uint1  = *(keyDataBytes + (6 * i) + 0);            // read key uint1       
-            uint uint2  = *(keyDataBytes + (6 * i) + 1);            // read key uint2       
-            uint uint3  = *(keyDataBytes + (6 * i) + 2);            // read key uint3       
-            uint uint4  = *(keyDataBytes + (6 * i) + 3);            // read key uint4       
-            uint uint5  = *(keyDataBytes + (6 * i) + 4);            // read key uint5       
-            offset      = *((int*)(keyDataBytes + (6 * i) + 5));    // read offset       
+            uint uint1 = *(keyDataBytes + (6 * i) + 0);            // read key uint1       
+            uint uint2 = *(keyDataBytes + (6 * i) + 1);            // read key uint2       
+            uint uint3 = *(keyDataBytes + (6 * i) + 2);            // read key uint3       
+            uint uint4 = *(keyDataBytes + (6 * i) + 3);            // read key uint4       
+            uint uint5 = *(keyDataBytes + (6 * i) + 4);            // read key uint5       
+            offset = *((int*)(keyDataBytes + (6 * i) + 5));    // read offset       
 
             return new HashKey(uint1, uint2, uint3, uint4, uint5);
         }
@@ -522,8 +520,8 @@ namespace Phrenologix
                 throw new InvalidDataException("_keysUsed overflow");
             }
 
-            sizeOfKeyBlock          = ioConstants.computeKeyBlockSize(_keysUsed, true);
-            sizeOfBloomFileBlock       = totalBlossomFileSize - sizeOfKeyBlock;
+            sizeOfKeyBlock = ioConstants.computeKeyBlockSize(_keysUsed, true);
+            sizeOfBloomFileBlock = totalBlossomFileSize - sizeOfKeyBlock;
             _bloomFileBlockEndPosition = _bloomFileBlockStartPosition + sizeOfBloomFileBlock;
 
             _fileStorageBlossom.read(blossomFilePosition + ioConstants.blossomOverhead, ioConstants.blossomOverhead, sizeOfKeyBlock - ioConstants.blossomOverhead, _theBuffer); // read all keys
@@ -551,13 +549,13 @@ namespace Phrenologix
 
                 // read rest of bloomFile header
                 recordType = *(bloomFileHeaderBytes + 4);                                 // read recordType
-                timestamp  = DateTime.FromBinary(*((long*)(bloomFileHeaderBytes + 5)));   // read timestamp
-                versionNo  = *((int*)(bloomFileHeaderBytes + 13));                        // read versionNo
-                var uint1  = *((uint*)(bloomFileHeaderBytes + 17));                       // read key uint1       
-                var uint2  = *((uint*)(bloomFileHeaderBytes + 21));                       // read key uint2       
-                var uint3  = *((uint*)(bloomFileHeaderBytes + 25));                       // read key uint3       
-                var uint4  = *((uint*)(bloomFileHeaderBytes + 29));                       // read key uint4       
-                var uint5  = *((uint*)(bloomFileHeaderBytes + 33));                       // read key uint5       
+                timestamp = DateTime.FromBinary(*((long*)(bloomFileHeaderBytes + 5)));   // read timestamp
+                versionNo = *((int*)(bloomFileHeaderBytes + 13));                        // read versionNo
+                var uint1 = *((uint*)(bloomFileHeaderBytes + 17));                       // read key uint1       
+                var uint2 = *((uint*)(bloomFileHeaderBytes + 21));                       // read key uint2       
+                var uint3 = *((uint*)(bloomFileHeaderBytes + 25));                       // read key uint3       
+                var uint4 = *((uint*)(bloomFileHeaderBytes + 29));                       // read key uint4       
+                var uint5 = *((uint*)(bloomFileHeaderBytes + 33));                       // read key uint5       
 
                 // vaidate recovered key
                 if (uint1 != key.uint1 || uint2 != key.uint2 || uint3 != key.uint3 || uint4 != key.uint4 || uint5 != key.uint5)
@@ -566,8 +564,8 @@ namespace Phrenologix
                 }
 
                 // get checksum, slot size, and length
-                var checksum        = *((uint*)(bloomFileHeaderBytes + 37));    // read checksum
-                var dataSlotSize    = *((int*)(bloomFileHeaderBytes + 41));     // read data slot size
+                var checksum = *((uint*)(bloomFileHeaderBytes + 37));    // read checksum
+                var dataSlotSize = *((int*)(bloomFileHeaderBytes + 41));     // read data slot size
                 var dataBytesLength = *((int*)(bloomFileHeaderBytes + 45));     // read data length
 
                 // validate data slot size
@@ -650,11 +648,11 @@ namespace Phrenologix
                 // read rest of bloomFile header
                 var oldTimestamp = DateTime.FromBinary(*((long*)(bloomFileHeaderBytes + 5)));   // read timestamp
                 var oldVersionNo = *((int*)(bloomFileHeaderBytes + 13));                        // read versionNo
-                var uint1        = *((uint*)(bloomFileHeaderBytes + 17));                       // read key uint1       
-                var uint2        = *((uint*)(bloomFileHeaderBytes + 21));                       // read key uint2       
-                var uint3        = *((uint*)(bloomFileHeaderBytes + 25));                       // read key uint3       
-                var uint4        = *((uint*)(bloomFileHeaderBytes + 29));                       // read key uint4       
-                var uint5        = *((uint*)(bloomFileHeaderBytes + 33));                       // read key uint5       
+                var uint1 = *((uint*)(bloomFileHeaderBytes + 17));                       // read key uint1       
+                var uint2 = *((uint*)(bloomFileHeaderBytes + 21));                       // read key uint2       
+                var uint3 = *((uint*)(bloomFileHeaderBytes + 25));                       // read key uint3       
+                var uint4 = *((uint*)(bloomFileHeaderBytes + 29));                       // read key uint4       
+                var uint5 = *((uint*)(bloomFileHeaderBytes + 33));                       // read key uint5       
 
                 // vaidate recovered key
                 if (uint1 != key.uint1 || uint2 != key.uint2 || uint3 != key.uint3 || uint4 != key.uint4 || uint5 != key.uint5)
@@ -689,7 +687,7 @@ namespace Phrenologix
                 }
 
                 // get data slot size
-                var dataSlotSize = *((int*)(bloomFileHeaderBytes + 41)); 
+                var dataSlotSize = *((int*)(bloomFileHeaderBytes + 41));
 
                 // validate data slot size
                 if (dataSlotSize <= 0)
@@ -711,11 +709,11 @@ namespace Phrenologix
                     checksum = checkSum.compute(dataBytes);
                 }
 
-                *(bloomFileHeaderBytes + 4)           = recordType;            // write recordType
-                *((long*)(bloomFileHeaderBytes + 5))  = timestamp.ToBinary();  // write timestamp
-                *((int*)(bloomFileHeaderBytes + 13))  = versionNo;             // write versionNo
+                *(bloomFileHeaderBytes + 4) = recordType;            // write recordType
+                *((long*)(bloomFileHeaderBytes + 5)) = timestamp.ToBinary();  // write timestamp
+                *((int*)(bloomFileHeaderBytes + 13)) = versionNo;             // write versionNo
                 *((uint*)(bloomFileHeaderBytes + 37)) = checksum;              // write checksum
-                *((int*)(bloomFileHeaderBytes + 45))  = dataBytes.Length;      // write new length
+                *((int*)(bloomFileHeaderBytes + 45)) = dataBytes.Length;      // write new length
 
                 var bloomFileDataBytes = bloomFileHeaderBytes + ioConstants.bloomFileOverhead;
 
@@ -732,7 +730,7 @@ namespace Phrenologix
                 {
                     *(bloomFileDataBytes + i) = 0;
                 }
-                
+
                 // write data to file if applicable
                 if (fileStorage != null)
                 {

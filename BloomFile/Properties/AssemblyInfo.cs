@@ -13,7 +13,6 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -22,11 +21,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("BloomFile")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("A fast flat file data store using a probabalistic Bloom filter hierarchy")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("PhrenoLogix")]
 [assembly: AssemblyProduct("BloomFile")]
-[assembly: AssemblyCopyright("Copyright © 2014")]
+[assembly: AssemblyCopyright("Copyright Justin Weiler © 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

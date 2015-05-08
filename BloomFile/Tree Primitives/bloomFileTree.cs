@@ -13,38 +13,36 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Xml;
 
-
 namespace Phrenologix
 {
     internal class bloomFileTree : IDisposable
     {
-        private string              _filePath;
-        private settings            _settings;
-        private int                 _blossomIDCounter;
-        private int[]               _branchKeyCapacities;
-        private fileStorage         _blossomFileStorage;
-        private fileStorage         _branchFileStorage;
-        private List<bloomFileBranch>  _rootList = new List<bloomFileBranch>();
-        private bloomFileBlossom       _currentBloomFileBlossom;
+        private string _filePath;
+        private settings _settings;
+        private int _blossomIDCounter;
+        private int[] _branchKeyCapacities;
+        private fileStorage _blossomFileStorage;
+        private fileStorage _branchFileStorage;
+        private List<bloomFileBranch> _rootList = new List<bloomFileBranch>();
+        private bloomFileBlossom _currentBloomFileBlossom;
         private blossomReaderWriter _blossomCreator;
         private blossomReaderWriter _blossomReader;
         private blossomReaderWriter _blossomUpdater;
         private blossomReaderWriter _blossomDeleter;
-        private branchReaderWriter  _branchReaderWriter;
-        private int                 _treeID;
-        private static long         _itemsCreated;
-        private static long         _itemsRead;
-        private static long         _itemsUpdatedInPlace;
-        private static long         _itemsUpdatedCreated;
-        private static long         _itemsDeleted;
-        private static long         _itemBytesExtant;
+        private branchReaderWriter _branchReaderWriter;
+        private int _treeID;
+        private static long _itemsCreated;
+        private static long _itemsRead;
+        private static long _itemsUpdatedInPlace;
+        private static long _itemsUpdatedCreated;
+        private static long _itemsDeleted;
+        private static long _itemBytesExtant;
 
         internal int treeID
         {
@@ -102,7 +100,7 @@ namespace Phrenologix
             }
         }
 
-        internal static long itemsDeleted        
+        internal static long itemsDeleted
         {
             get
             {
@@ -114,7 +112,7 @@ namespace Phrenologix
             }
         }
 
-        internal static long itemBytesExtant        
+        internal static long itemBytesExtant
         {
             get
             {
@@ -129,29 +127,29 @@ namespace Phrenologix
         public void Dispose()
         {
             _currentBloomFileBlossom.flushCreator(_blossomCreator);
-            
+
             _branchFileStorage.Dispose();
             _blossomFileStorage.Dispose();
 
-            _currentBloomFileBlossom = null;            
-            _blossomCreator       = null;
-            _blossomReader        = null;
-            _blossomUpdater       = null;
-            _blossomDeleter       = null;
-            _blossomFileStorage   = null;
-            _branchReaderWriter   = null;
-            _branchFileStorage    = null;
+            _currentBloomFileBlossom = null;
+            _blossomCreator = null;
+            _blossomReader = null;
+            _blossomUpdater = null;
+            _blossomDeleter = null;
+            _blossomFileStorage = null;
+            _branchReaderWriter = null;
+            _branchFileStorage = null;
         }
 
         internal bloomFileTree(int treeID, string filePath, settings settings, bool reconstruct)
         {
-            _treeID   = treeID;
+            _treeID = treeID;
             _filePath = filePath;
             _settings = settings;
 
             // setup compute checksum
             blossomReaderWriter.doComputeChecksum = _settings.doComputeChecksum;
-            branchReaderWriter.doComputeChecksum  = _settings.doComputeChecksum;
+            branchReaderWriter.doComputeChecksum = _settings.doComputeChecksum;
 
             // recopy branch factors into a more usable local array in bloomFileBranch
             var treeBranchFactors = new byte[_settings.branchFactors.Length + 1];
@@ -159,8 +157,8 @@ namespace Phrenologix
             bloomFileBranch.branchFactors = treeBranchFactors;
 
             // compute levels and branch key capacities, branchKeyCapacities level 0 is ACTUAL int key capacity
-            var levels              = _settings.branchFactors.Length;
-            _branchKeyCapacities    = new int[levels + 1];
+            var levels = _settings.branchFactors.Length;
+            _branchKeyCapacities = new int[levels + 1];
             _branchKeyCapacities[0] = (int)Math.Ceiling(_settings.blossomKeyCapacity);
 
             for (byte level = 1; level <= levels; level++)
@@ -183,16 +181,16 @@ namespace Phrenologix
 
             // setup blossom storage, it needs the ACTUAL int key capacity and real buffer size
             _blossomFileStorage = new fileStorage(_treeID, filePath + ".bf", totalBufferSize, _settings.initialFileSize, _settings.growFileSize);
-            
+
             // create blossom IO helpers
-            _blossomCreator     = new blossomReaderWriter(_blossomFileStorage, _branchKeyCapacities[0], totalBufferSize, bloomFileBlockStartPosition, true);
-            _blossomReader      = new blossomReaderWriter(_blossomFileStorage, _branchKeyCapacities[0], totalBufferSize, bloomFileBlockStartPosition, false);
-            _blossomUpdater     = _blossomReader;
-            _blossomDeleter     = _blossomReader;
+            _blossomCreator = new blossomReaderWriter(_blossomFileStorage, _branchKeyCapacities[0], totalBufferSize, bloomFileBlockStartPosition, true);
+            _blossomReader = new blossomReaderWriter(_blossomFileStorage, _branchKeyCapacities[0], totalBufferSize, bloomFileBlockStartPosition, false);
+            _blossomUpdater = _blossomReader;
+            _blossomDeleter = _blossomReader;
 
             // setup branch storage
-            var ctSize          = 128 * 1024 * 1024;
-            _branchFileStorage  = new fileStorage(_treeID, _filePath + ".ct", 0, ctSize, ctSize);
+            var ctSize = 128 * 1024 * 1024;
+            _branchFileStorage = new fileStorage(_treeID, _filePath + ".ct", 0, ctSize, ctSize);
             _branchReaderWriter = new branchReaderWriter(_branchFileStorage);
 
             if (reconstruct == false)
@@ -223,13 +221,13 @@ namespace Phrenologix
 
         internal Status createBloomFile(HashKey key, byte[] dataBytes, byte recordType, DateTime timestamp, int versionNo, float slackFactor, bool flush)
         {
-            int tries      = 2;
+            int tries = 2;
             Status created = Status.Unsuccessful;
 
             lock (this)
             {
                 while (tries-- > 0)
-                {                
+                {
                     created = _currentBloomFileBlossom.createBloomFileToCreator(_blossomCreator, key, dataBytes, recordType, timestamp, versionNo, slackFactor, flush);
 
                     // add a blossom if needed
@@ -250,7 +248,7 @@ namespace Phrenologix
                         parent.addChildBranch(_currentBloomFileBlossom);
                     }
                     else
-                    {                        
+                    {
                         break;
                     }
                 }
@@ -268,10 +266,10 @@ namespace Phrenologix
         internal Status readBloomFile(HashKey key, out byte[] dataBytes, out byte recordType, out DateTime timestamp, out int versionNo)
         {
             // setup defaults
-            recordType  = 0;
-            timestamp   = DateTime.MinValue;
-            versionNo   = 0;
-            dataBytes   = null;
+            recordType = 0;
+            timestamp = DateTime.MinValue;
+            versionNo = 0;
+            dataBytes = null;
             Status read = Status.KeyNotFound;
 
             lock (this)
@@ -288,10 +286,10 @@ namespace Phrenologix
                 }
                 else
                 {
-                    byte     evalRecordType = 0;
-                    DateTime evalTimestamp  = DateTime.MinValue;
-                    int      evalVersionNo  = 0;
-                    byte[]   evalDataBytes  = null;
+                    byte evalRecordType = 0;
+                    DateTime evalTimestamp = DateTime.MinValue;
+                    int evalVersionNo = 0;
+                    byte[] evalDataBytes = null;
 
                     Func<bloomFileBlossom, Status> evaluator = delegate(bloomFileBlossom bloomFileBlossom)
                     {
@@ -299,7 +297,7 @@ namespace Phrenologix
                         {
                             return bloomFileBlossom.readBloomFileFromReader(_blossomReader, key, out evalDataBytes, out evalRecordType, out evalTimestamp, out evalVersionNo);
                         }
-                        
+
                         // keep looking
                         return Status.KeyNotFound;
                     };
@@ -312,9 +310,9 @@ namespace Phrenologix
                         if (read != Status.KeyNotFound)
                         {
                             recordType = evalRecordType;
-                            timestamp  = evalTimestamp;
-                            versionNo  = evalVersionNo;
-                            dataBytes  = evalDataBytes;
+                            timestamp = evalTimestamp;
+                            versionNo = evalVersionNo;
+                            dataBytes = evalDataBytes;
                             break;
                         }
                     }
@@ -349,7 +347,7 @@ namespace Phrenologix
                 else
                 {
                     DateTime evalTimestamp = timestamp;
-                    int      evalVersionNo = versionNo;
+                    int evalVersionNo = versionNo;
 
                     Func<bloomFileBlossom, Status> evaluator = delegate(bloomFileBlossom bloomFileBlossom)
                     {
@@ -485,7 +483,7 @@ namespace Phrenologix
             return total;
         }
 #endif
-        
+
         // rebuild tree upon load
         private void _reconstructBloomFileBranches()
         {
@@ -493,11 +491,11 @@ namespace Phrenologix
 
             while (true)
             {
-                long        branchFilePosition;
-                byte        level;
-                DateTime    timestamp;
-                long        blossomFilePosition;
-                int         blossomID;
+                long branchFilePosition;
+                byte level;
+                DateTime timestamp;
+                long blossomFilePosition;
+                int blossomID;
 
                 var bytes = _branchReaderWriter.readBranchFromFile(out branchFilePosition, out level, out timestamp, out blossomFilePosition, out blossomID);
 
@@ -545,7 +543,7 @@ namespace Phrenologix
 
             while (true)
             {
-                position   = position.parent;
+                position = position.parent;
                 byte level = (byte)(position != null ? position.level - 1 : _rootList[0].level);
 
                 if (position == null || position.branchCount < bloomFileBranch.branchFactors[level])

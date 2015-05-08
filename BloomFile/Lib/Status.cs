@@ -13,25 +13,23 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace Phrenologix
 {
     public enum Status
     {
-        KeyTimestampConflict     = -6,
-        KeyVersionConflict       = -5,
+        KeyTimestampConflict = -6,
+        KeyVersionConflict = -5,
         KeyFoundButMarkedDeleted = -4,
-        KeyNotFound              = -3,
-        BadParameter             = -2,
-        Unsuccessful             = -1,
-        Unknown                  = 0,
-        Successful               = 1,
+        KeyNotFound = -3,
+        BadParameter = -2,
+        Unsuccessful = -1,
+        Unknown = 0,
+        Successful = 1,
     }
 }

@@ -13,10 +13,8 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using System;
 using System.Threading;
-
 
 namespace Phrenologix
 {
@@ -24,20 +22,20 @@ namespace Phrenologix
 
     public class BloomFile : IDisposable
     {
-        private const int                   _numTrees  = 8;
-        private settings                    _settings  = new settings();
-        private bloomFileTree[]                _bfTrees = new bloomFileTree[_numTrees];
-        private Timer                       _flushTimer;
-        private object                      _flushLock = new object();
-        private bool                        _isDisposed;
+        private const int _numTrees = 8;
+        private settings _settings = new settings();
+        private bloomFileTree[] _bfTrees = new bloomFileTree[_numTrees];
+        private Timer _flushTimer;
+        private object _flushLock = new object();
+        private bool _isDisposed;
 
-        public event FlushingEventHandler   OnFlushingStart;
-        public event FlushingEventHandler   OnFlushingStop;
+        public event FlushingEventHandler OnFlushingStart;
+        public event FlushingEventHandler OnFlushingStop;
 
-        public static int                   FlushInterval = 10000;
+        public static int FlushInterval = 10000;
 
-        private BloomFile() 
-        {            
+        private BloomFile()
+        {
         }
 
         ~BloomFile()
@@ -48,12 +46,12 @@ namespace Phrenologix
         public static BloomFile LoadBloomFile(string filePath)
         {
             var bf = new BloomFile();
-            
+
             bf._settings.loadSettings(filePath);
 
             for (int i = 0; i < _numTrees; i++)
             {
-                var bfTree       = new bloomFileTree(i, string.Format("{0}{1}", filePath, i), bf._settings, true);
+                var bfTree = new bloomFileTree(i, string.Format("{0}{1}", filePath, i), bf._settings, true);
                 bf._bfTrees[i] = bfTree;
             }
 
@@ -67,23 +65,23 @@ namespace Phrenologix
             int dbsp;
             long fileIncr = ((long)ioConstants.computeTotalBufferSize(96, averageDataItemSize, averageDataItemSizeSlack, out dbsp) * 4L * 8L * 16L * 32L * 64L) / 80L;
 
-            var bf                                = new BloomFile();
-            
-            bf._settings.blossomKeyCapacity       = 95.367f;
-            bf._settings.errorRate                = 0.02f;
-            bf._settings.padFactor                = 1.0f;
-            bf._settings.averageDataItemSize      = averageDataItemSize;
+            var bf = new BloomFile();
+
+            bf._settings.blossomKeyCapacity = 95.367f;
+            bf._settings.errorRate = 0.02f;
+            bf._settings.padFactor = 1.0f;
+            bf._settings.averageDataItemSize = averageDataItemSize;
             bf._settings.averageDataItemSizeSlack = averageDataItemSizeSlack;
-            bf._settings.doComputeChecksum        = doComputeChecksum;
-            bf._settings.branchFactors            = new byte[] { 4, 8, 16, 32, 64 };
-            bf._settings.initialFileSize          = fileIncr;
-            bf._settings.growFileSize             = fileIncr;
-            
+            bf._settings.doComputeChecksum = doComputeChecksum;
+            bf._settings.branchFactors = new byte[] { 4, 8, 16, 32, 64 };
+            bf._settings.initialFileSize = fileIncr;
+            bf._settings.growFileSize = fileIncr;
+
             bf._settings.saveSettings(filePath);
 
             for (int i = 0; i < _numTrees; i++)
             {
-                var bfTree       = new bloomFileTree(i, string.Format("{0}{1}", filePath, i), bf._settings, false);
+                var bfTree = new bloomFileTree(i, string.Format("{0}{1}", filePath, i), bf._settings, false);
                 bf._bfTrees[i] = bfTree;
             }
 
@@ -91,7 +89,7 @@ namespace Phrenologix
 
             return bf;
         }
-        
+
 #if TRACKFP
         public int FalsePositives()
         {
@@ -99,7 +97,7 @@ namespace Phrenologix
 
             for (int i = 0; i < _numTrees; i++)
             {
-                var bfTree    = _bfTrees[i];
+                var bfTree = _bfTrees[i];
                 falsePositives += bfTree.falsePositives();
             }
 

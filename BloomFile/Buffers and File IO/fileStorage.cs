@@ -13,23 +13,21 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
 using System;
 using System.IO;
-
 
 namespace Phrenologix
 {
     internal class fileStorage : IDisposable
     {
-        private char[]       _header = new char[]{'B','L','O','O','M','F','I','L','E','1'};        
-        private FileStream   _fileStream;
+        private char[] _header = new char[] { 'B', 'L', 'O', 'O', 'M', 'F', 'I', 'L', 'E', '1' };
+        private FileStream _fileStream;
         private BinaryWriter _binaryWriter;
         private BinaryReader _binaryReader;
-        private long         _lastFileBlockPosition;
-        private int          _totalBufferSize;
-        private long         _growFileSize;
-        private int          _fileID;
+        private long _lastFileBlockPosition;
+        private int _totalBufferSize;
+        private long _growFileSize;
+        private int _fileID;
 
         internal int fileID
         {
@@ -68,8 +66,8 @@ namespace Phrenologix
                 bufferSize = _totalBufferSize;
             }
 
-            _growFileSize = growFileSize;            
-            _fileStream   = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, bufferSize, FileOptions.None); // writethrough | no buffering... 0x80000000 | 0x20000000            
+            _growFileSize = growFileSize;
+            _fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, bufferSize, FileOptions.None); // writethrough | no buffering... 0x80000000 | 0x20000000            
             _binaryWriter = new BinaryWriter(_fileStream);
             _binaryReader = new BinaryReader(_fileStream);
 
@@ -91,7 +89,7 @@ namespace Phrenologix
         internal long read(int fileBlockSize, byte[] readBuffer)
         {
             var fileBlockPosition = _fileStream.Position;
-            
+
             // read bytes data
             _binaryReader.Read(readBuffer, 0, fileBlockSize);
             return fileBlockPosition;
@@ -103,7 +101,7 @@ namespace Phrenologix
             {
                 _fileStream.Seek(fileBlockPosition, SeekOrigin.Begin);
             }
-             
+
             // read bytes data
             _binaryReader.Read(readBuffer, bufferLocation, fileBlockSize);
         }
@@ -169,7 +167,7 @@ namespace Phrenologix
             _fileStream.Dispose();
             _binaryReader = null;
             _binaryWriter = null;
-            _fileStream   = null;
+            _fileStream = null;
         }
     }
 }
