@@ -24,7 +24,7 @@ namespace Phrenologix
     {
         private const int _numTrees = 8;
         private settings _settings = new settings();
-        private bloomFileTree[] _bfTrees = new bloomFileTree[_numTrees];
+        private bloomFileTree[] _bloomFileTrees = new bloomFileTree[_numTrees];
         private Timer _flushTimer;
         private object _flushLock = new object();
         private bool _isDisposed;
@@ -45,49 +45,49 @@ namespace Phrenologix
 
         public static BloomFile LoadBloomFile(string filePath)
         {
-            var bf = new BloomFile();
+            var bloomFile = new BloomFile();
 
-            bf._settings.loadSettings(filePath);
+            bloomFile._settings.loadSettings(filePath);
 
             for (int i = 0; i < _numTrees; i++)
             {
-                var bfTree = new bloomFileTree(i, string.Format("{0}{1}", filePath, i), bf._settings, true);
-                bf._bfTrees[i] = bfTree;
+                var bloomFileTree = new bloomFileTree(i, string.Format("{0}{1}", filePath, i), bloomFile._settings, true);
+                bloomFile._bloomFileTrees[i] = bloomFileTree;
             }
 
-            bf._flushTimer = new Timer(_flushAllBloomFileTrees, bf, FlushInterval, Timeout.Infinite);
+            bloomFile._flushTimer = new Timer(_flushAllBloomFileTrees, bloomFile, FlushInterval, Timeout.Infinite);
 
-            return bf;
+            return bloomFile;
         }
 
         public static BloomFile CreateBloomFile(string filePath, int averageDataItemSize, float averageDataItemSizeSlack, bool doComputeChecksum)
         {
-            int dbsp;
-            long fileIncr = ((long)ioConstants.computeTotalBufferSize(96, averageDataItemSize, averageDataItemSizeSlack, out dbsp) * 4L * 8L * 16L * 32L * 64L) / 80L;
+            int blockStartPosition;
+            long fileIncr = ((long)ioConstants.computeTotalBufferSize(96, averageDataItemSize, averageDataItemSizeSlack, out blockStartPosition) * 4L * 8L * 16L * 32L * 64L) / 80L;
 
-            var bf = new BloomFile();
+            var bloomFile = new BloomFile();
 
-            bf._settings.blossomKeyCapacity = 95.367f;
-            bf._settings.errorRate = 0.02f;
-            bf._settings.padFactor = 1.0f;
-            bf._settings.averageDataItemSize = averageDataItemSize;
-            bf._settings.averageDataItemSizeSlack = averageDataItemSizeSlack;
-            bf._settings.doComputeChecksum = doComputeChecksum;
-            bf._settings.branchFactors = new byte[] { 4, 8, 16, 32, 64 };
-            bf._settings.initialFileSize = fileIncr;
-            bf._settings.growFileSize = fileIncr;
+            bloomFile._settings.blossomKeyCapacity = 95.367f;
+            bloomFile._settings.errorRate = 0.02f;
+            bloomFile._settings.padFactor = 1.0f;
+            bloomFile._settings.averageDataItemSize = averageDataItemSize;
+            bloomFile._settings.averageDataItemSizeSlack = averageDataItemSizeSlack;
+            bloomFile._settings.doComputeChecksum = doComputeChecksum;
+            bloomFile._settings.branchFactors = new byte[] { 4, 8, 16, 32, 64 };
+            bloomFile._settings.initialFileSize = fileIncr;
+            bloomFile._settings.growFileSize = fileIncr;
 
-            bf._settings.saveSettings(filePath);
+            bloomFile._settings.saveSettings(filePath);
 
             for (int i = 0; i < _numTrees; i++)
             {
-                var bfTree = new bloomFileTree(i, string.Format("{0}{1}", filePath, i), bf._settings, false);
-                bf._bfTrees[i] = bfTree;
+                var bloomFileTree = new bloomFileTree(i, string.Format("{0}{1}", filePath, i), bloomFile._settings, false);
+                bloomFile._bloomFileTrees[i] = bloomFileTree;
             }
 
-            bf._flushTimer = new Timer(_flushAllBloomFileTrees, bf, FlushInterval, Timeout.Infinite);
+            bloomFile._flushTimer = new Timer(_flushAllBloomFileTrees, bloomFile, FlushInterval, Timeout.Infinite);
 
-            return bf;
+            return bloomFile;
         }
 
 #if TRACKFP
@@ -170,13 +170,13 @@ namespace Phrenologix
             }
 
             var i = ((key.uint5 & 0x70000000) >> 28);
-            return _bfTrees[i].createBloomFile(key, dataBytes, recordType, timestamp, versionNo, _settings.averageDataItemSizeSlack, flush);
+            return _bloomFileTrees[i].createBloomFile(key, dataBytes, recordType, timestamp, versionNo, _settings.averageDataItemSizeSlack, flush);
         }
 
         public Status Read(HashKey key, out byte[] dataBytes, out byte recordType, out DateTime timestamp, out int versionNo)
         {
             var i = ((key.uint5 & 0x70000000) >> 28);
-            return _bfTrees[i].readBloomFile(key, out dataBytes, out recordType, out timestamp, out versionNo);
+            return _bloomFileTrees[i].readBloomFile(key, out dataBytes, out recordType, out timestamp, out versionNo);
         }
 
         public Status Update(HashKey key, byte[] dataBytes, byte recordType, ref DateTime timestamp, ref int versionNo, bool flush = false)
@@ -191,13 +191,13 @@ namespace Phrenologix
             }
 
             var i = ((key.uint5 & 0x70000000) >> 28);
-            return _bfTrees[i].updateBloomFile(key, dataBytes, recordType, ref timestamp, ref versionNo, _settings.averageDataItemSizeSlack, flush);
+            return _bloomFileTrees[i].updateBloomFile(key, dataBytes, recordType, ref timestamp, ref versionNo, _settings.averageDataItemSizeSlack, flush);
         }
 
         public Status Delete(HashKey key, bool flush = false)
         {
             var i = ((key.uint5 & 0x70000000) >> 28);
-            return _bfTrees[i].deleteBloomFile(key, flush);
+            return _bloomFileTrees[i].deleteBloomFile(key, flush);
         }
 
         public void Flush()
@@ -213,43 +213,43 @@ namespace Phrenologix
 
         private static void _flushAllBloomFileTrees(object state)
         {
-            var bf = (BloomFile)state;
+            var bloomFile = (BloomFile)state;
 
-            if (bf._isDisposed == false && bf._flushTimer != null)
+            if (bloomFile._isDisposed == false && bloomFile._flushTimer != null)
             {
-                lock (bf._flushLock)
+                lock (bloomFile._flushLock)
                 {
-                    if (bf._isDisposed == false && bf._flushTimer != null)
+                    if (bloomFile._isDisposed == false && bloomFile._flushTimer != null)
                     {
                         var now = DateTime.Now;
 
-                        var bfTrees = bf._bfTrees;
+                        var bloomFileTrees = bloomFile._bloomFileTrees;
 
-                        if (bfTrees != null)
+                        if (bloomFileTrees != null)
                         {
-                            if (bf.OnFlushingStart != null)
+                            if (bloomFile.OnFlushingStart != null)
                             {
-                                ThreadPool.QueueUserWorkItem(delegate(object o) { bf.OnFlushingStart(bf, null); });
+                                ThreadPool.QueueUserWorkItem(delegate(object o) { bloomFile.OnFlushingStart(bloomFile, null); });
                             }
 
                             for (int i = 0; i < 8; i++)
                             {
-                                if (bfTrees[i] != null)
+                                if (bloomFileTrees[i] != null)
                                 {
-                                    bfTrees[i].flushCurrentBloomFileBlossom();
-                                    bfTrees[i].flushAllBloomFileBranches(now);
+                                    bloomFileTrees[i].flushCurrentBloomFileBlossom();
+                                    bloomFileTrees[i].flushAllBloomFileBranches(now);
                                 }
                             }
 
-                            if (bf.OnFlushingStop != null)
+                            if (bloomFile.OnFlushingStop != null)
                             {
-                                ThreadPool.QueueUserWorkItem(delegate(object o) { bf.OnFlushingStop(bf, null); });
+                                ThreadPool.QueueUserWorkItem(delegate(object o) { bloomFile.OnFlushingStop(bloomFile, null); });
                             }
                         }
 
-                        if (bf._flushTimer != null)
+                        if (bloomFile._flushTimer != null)
                         {
-                            bf._flushTimer.Change(FlushInterval, Timeout.Infinite);
+                            bloomFile._flushTimer.Change(FlushInterval, Timeout.Infinite);
                         }
                     }
                 }
@@ -275,15 +275,15 @@ namespace Phrenologix
                             _flushTimer = null;
                         }
 
-                        if (_bfTrees != null)
+                        if (_bloomFileTrees != null)
                         {
                             for (int i = 0; i < 8; i++)
                             {
-                                _bfTrees[i].Dispose();
-                                _bfTrees[i] = null;
+                                _bloomFileTrees[i].Dispose();
+                                _bloomFileTrees[i] = null;
                             }
 
-                            _bfTrees = null;
+                            _bloomFileTrees = null;
                         }
                     }
                 }

@@ -70,12 +70,12 @@ namespace Phrenologix
                     }
                 }
 
-                level = *(branchHeaderBytes + 4);                                // read level
-                timestamp = DateTime.FromBinary(*((long*)(branchHeaderBytes + 5)));  // read timestamp
+                level = *(branchHeaderBytes + 4);                                       // read level
+                timestamp = DateTime.FromBinary(*((long*)(branchHeaderBytes + 5)));     // read timestamp
                 var checksum = *((uint*)(branchHeaderBytes + 13));                      // read checksum
-                blossomFilePosition = *((long*)(branchHeaderBytes + 17));                      // read blossomFilePosition
-                blossomID = *((int*)(branchHeaderBytes + 25));                       // read blossomID
-                var dataBytesLength = *((int*)(branchHeaderBytes + 29));                       // read data length
+                blossomFilePosition = *((long*)(branchHeaderBytes + 17));               // read blossomFilePosition
+                blossomID = *((int*)(branchHeaderBytes + 25));                          // read blossomID
+                var dataBytesLength = *((int*)(branchHeaderBytes + 29));                // read data length
 
                 if (dataBytesLength <= 0)
                 {
@@ -118,13 +118,13 @@ namespace Phrenologix
                 }
 
                 // write branch header
-                *((uint*)(theBufferBytes + 0)) = ioConstants.startOfBranchMarker;      // start of branch marker BRCH
-                *(theBufferBytes + 4) = level;                                // write level
-                *((long*)(theBufferBytes + 5)) = timestamp.ToBinary();                 // write timestamp
+                *((uint*)(theBufferBytes + 0)) = ioConstants.startOfBranchMarker;       // start of branch marker BRCH
+                *(theBufferBytes + 4) = level;                                          // write level
+                *((long*)(theBufferBytes + 5)) = timestamp.ToBinary();                  // write timestamp
                 *((uint*)(theBufferBytes + 13)) = checksum;                             // write checksum
                 *((long*)(theBufferBytes + 17)) = blossomFilePosition;                  // write blossomFilePosition
-                *((int*)(theBufferBytes + 25)) = blossomID;                            // write blossomID
-                *((int*)(theBufferBytes + 29)) = dataBytes.Length;                     // write data length
+                *((int*)(theBufferBytes + 25)) = blossomID;                             // write blossomID
+                *((int*)(theBufferBytes + 29)) = dataBytes.Length;                      // write data length
 
                 // write data to file
                 _fileStorageBranch.write(branchFilePosition, _theBuffer);

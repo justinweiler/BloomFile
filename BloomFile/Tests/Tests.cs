@@ -41,22 +41,22 @@ namespace Phrenologix
             // clean data
             _cleanData(Path.GetDirectoryName(filePath));
 
-            // create bf
-            var bf = _createBloomFile(filePath, iteration, pktSz, pktSzSlack, doComputeChecksum);
+            // create bloomFile
+            var bloomFile = _createBloomFile(filePath, iteration, pktSz, pktSzSlack, doComputeChecksum);
 
             // mixed MT operations (write, read, update)
-            _bulkMixedMT(bf, iteration, numThreads, pktSz, keysToCreateCount, modSave, keysToSaveCount, savedKeysList, 30, 50, 19, 1, 5);
-            bf.Dispose();
+            _bulkMixedMT(bloomFile, iteration, numThreads, pktSz, keysToCreateCount, modSave, keysToSaveCount, savedKeysList, 30, 50, 19, 1, 5);
+            bloomFile.Dispose();
 
             // sort keys for randomization sake
             savedKeysList.Sort();
 
-            // load whole bf
-            bf = _loadBloomFile(filePath, iteration);
+            // load whole bloomFile
+            bloomFile = _loadBloomFile(filePath, iteration);
 
             // random read keys - multithreaded
-            _bulkReadKeysMTFromSavedKeysList(bf, iteration, numThreads, savedKeysList.Count, savedKeysList);
-            bf.Dispose();
+            _bulkReadKeysMTFromSavedKeysList(bloomFile, iteration, numThreads, savedKeysList.Count, savedKeysList);
+            bloomFile.Dispose();
         }
 
         // Basic single threaded access tests for data consistency and save and load
@@ -80,29 +80,29 @@ namespace Phrenologix
             // create key file
             _createKeyFile(keyFilePath, iteration, keysToCreateOrUpdateCount, false);
 
-            // create bf
-            var bf = _createBloomFile(filePath, iteration, pktSz, pktSzSlack, doComputeChecksum);
+            // create bloomFile
+            var bloomFile = _createBloomFile(filePath, iteration, pktSz, pktSzSlack, doComputeChecksum);
 
             // bulk create from key file
-            _bulkCreateFromKeyFile(keyFilePath, bf, iteration, pktSz, 0, keysToCreateOrUpdateCount, modSave, savedKeysList);
-            bf.Dispose();
+            _bulkCreateFromKeyFile(keyFilePath, bloomFile, iteration, pktSz, 0, keysToCreateOrUpdateCount, modSave, savedKeysList);
+            bloomFile.Dispose();
 
-            // load half bf
-            bf = _loadBloomFile(filePath, iteration);
+            // load half bloomFile
+            bloomFile = _loadBloomFile(filePath, iteration);
 
-            // bulk update from key file (doubles size of bf)
-            _bulkUpdateFromKeyFile(keyFilePath, bf, iteration, pktSz, 0, keysToCreateOrUpdateCount);
-            bf.Dispose();
+            // bulk update from key file (doubles size of bloomFile)
+            _bulkUpdateFromKeyFile(keyFilePath, bloomFile, iteration, pktSz, 0, keysToCreateOrUpdateCount);
+            bloomFile.Dispose();
 
             // sort keys for randomization sake
             savedKeysList.Sort();
 
-            // load whole bf
-            bf = _loadBloomFile(filePath, iteration);
+            // load whole bloomFile
+            bloomFile = _loadBloomFile(filePath, iteration);
 
             // read saved keys
-            _bulkReadKeysFromSavedKeysList(bf, iteration, savedKeysList);
-            bf.Dispose();
+            _bulkReadKeysFromSavedKeysList(bloomFile, iteration, savedKeysList);
+            bloomFile.Dispose();
         }
 
         // Basic capacity test
@@ -117,7 +117,7 @@ namespace Phrenologix
             float errorRate = 0.001F;
             Queue<HashKey> savedKeys = new Queue<HashKey>(million);
             Random rnd = new Random();
-            long mem = GC.GetTotalMemory(true);
+            long allocMemory = GC.GetTotalMemory(true);
             var bloomFileBranchList = new List<bloomFileBranch>();
             DateTime timeStart = DateTime.Now;
 
@@ -127,39 +127,39 @@ namespace Phrenologix
 
             for (int n = 0; n < 64; n++)
             {
-                bloomFileBranch L5 = new bloomFileBranch(0, 5, capacity * (int)((float)32 * (float)16 * (float)8 * (float)4 * factor), errorRate);
-                bloomFileBranchList.Add(L5);
+                bloomFileBranch Level5 = new bloomFileBranch(0, 5, capacity * (int)((float)32 * (float)16 * (float)8 * (float)4 * factor), errorRate);
+                bloomFileBranchList.Add(Level5);
 
                 for (int m = 0; m < 32; m++)
                 {
                     Console.WriteLine("Loop: {0}.{1}", n, m);
 
-                    bloomFileBranch L4 = new bloomFileBranch(0, 4, capacity * (int)((float)16 * (float)8 * (float)4 * factor), errorRate);
-                    L5.addChildBranch(L4);
+                    bloomFileBranch Level4 = new bloomFileBranch(0, 4, capacity * (int)((float)16 * (float)8 * (float)4 * factor), errorRate);
+                    Level5.addChildBranch(Level4);
 
                     for (int l = 0; l < 16; l++)
                     {
-                        bloomFileBranch L3 = new bloomFileBranch(0, 3, capacity * (int)((float)8 * (float)4 * factor), errorRate);
-                        L4.addChildBranch(L3);
+                        bloomFileBranch Level3 = new bloomFileBranch(0, 3, capacity * (int)((float)8 * (float)4 * factor), errorRate);
+                        Level4.addChildBranch(Level3);
 
                         for (int k = 0; k < 8; k++)
                         {
-                            bloomFileBranch L2 = new bloomFileBranch(0, 2, capacity * (int)((float)4 * factor), errorRate);
-                            L3.addChildBranch(L2);
+                            bloomFileBranch Level2 = new bloomFileBranch(0, 2, capacity * (int)((float)4 * factor), errorRate);
+                            Level3.addChildBranch(Level2);
 
                             for (int j = 0; j < 4; j++)
                             {
-                                //bloomFileBlossom L1 = new bloomFileBlossom(null, null, 0, branch, (int)((float)capacity * finalfactor * (float)bonsai), errorRate, false);
-                                bloomFileBranch L1 = new bloomFileBranch(0, 1, (int)((float)capacity * factor), errorRate);
+                                //bloomFileBlossom Level1 = new bloomFileBlossom(null, null, 0, branch, (int)((float)capacity * finalfactor * (float)bonsai), errorRate, false);
+                                bloomFileBranch Level1 = new bloomFileBranch(0, 1, (int)((float)capacity * factor), errorRate);
 
-                                L2.addChildBranch(L1);
+                                Level2.addChildBranch(Level1);
 
                                 for (int i = 0; i < capacity; i++)
                                 {
                                     var key = new HashKey();
                                     key.GenerateRandomKey();
 
-                                    L1.superAddKey(key);
+                                    Level1.superAddKey(key);
 
                                     var rndItem = rnd.Next();
 
@@ -211,7 +211,7 @@ namespace Phrenologix
                 }
             }
 
-            Console.WriteLine("memory delta: {0}", GC.GetTotalMemory(true) - mem);
+            Console.WriteLine("Memory delta: {0}", GC.GetTotalMemory(true) - allocMemory);
             Console.WriteLine(string.Format("{0} added, time delta: {1}", count, DateTime.Now - timeStart));
 
             var sw = new Stopwatch();
@@ -286,7 +286,7 @@ namespace Phrenologix
         {
             internal int pktSz;
             internal List<_keyTracker> savedKeysList = new List<_keyTracker>();
-            internal BloomFile bf;
+            internal BloomFile bloomFile;
             internal int iteration;
             internal int keysToCreateCount;
             internal int modSave;
@@ -294,16 +294,16 @@ namespace Phrenologix
             internal Barrier barrier;
             internal int[] pctTable;
             internal int biasPct;
-            internal int tID;
+            internal int threadId;
         }
 
         private class _threadReadVars
         {
             internal List<_keyTracker> savedKeysList;
-            internal BloomFile bf;
+            internal BloomFile bloomFile;
             internal int iteration;
             internal Barrier barrier;
-            internal int tID;
+            internal int threadId;
         }
 
 #if TRACKFP
@@ -392,19 +392,19 @@ namespace Phrenologix
                 keyList = new List<HashKey>();
             }
 
-            var fs = File.Create(keyFilePath);
+            var fileStream = File.Create(keyFilePath);
 
-            using (var bw = new BinaryWriter(fs))
+            using (var binaryWriter = new BinaryWriter(fileStream))
             {
                 for (int i = 0; i < keysToAddCount; i++)
                 {
                     var key = new HashKey();
                     key.GenerateRandomKey();
-                    bw.Write(key.uint1);
-                    bw.Write(key.uint2);
-                    bw.Write(key.uint3);
-                    bw.Write(key.uint4);
-                    bw.Write(key.uint5);
+                    binaryWriter.Write(key.uint1);
+                    binaryWriter.Write(key.uint2);
+                    binaryWriter.Write(key.uint3);
+                    binaryWriter.Write(key.uint4);
+                    binaryWriter.Write(key.uint5);
 
                     if (keyList != null)
                     {
@@ -412,10 +412,10 @@ namespace Phrenologix
                     }
                 }
 
-                bw.Flush();
+                binaryWriter.Flush();
             }
 
-            fs = null;
+            fileStream = null;
 
             Console.WriteLine(string.Format("Iteration: {0} Key Generation Complete: {1} Keys Created. Time Delta: {2}", iteration, keysToAddCount, DateTime.Now - timeStart));
 
@@ -451,25 +451,25 @@ namespace Phrenologix
 
         private static BloomFile _createBloomFile(string filePath, int iteration, int pktSz, float pktSzSlack, bool doComputeChecksum)
         {
-            long mem = GC.GetTotalMemory(true);
+            long allocMemory = GC.GetTotalMemory(true);
             var timeStart = DateTime.Now;
 
             Console.WriteLine(string.Format("Iteration: {0} Create BloomFile Start: {1}", iteration, timeStart));
 
-            var bf = BloomFile.CreateBloomFile(filePath, pktSz, pktSzSlack, doComputeChecksum);
+            var bloomFile = BloomFile.CreateBloomFile(filePath, pktSz, pktSzSlack, doComputeChecksum);
 
-            bf.OnFlushingStart += _startFlushing;
-            bf.OnFlushingStop += _stopFlushing;
+            bloomFile.OnFlushingStart += _startFlushing;
+            bloomFile.OnFlushingStop += _stopFlushing;
 
-            Console.WriteLine(string.Format("Iteration: {0} Create BloomFile Complete: {1} Memory Delta: {2}", iteration, DateTime.Now, GC.GetTotalMemory(true) - mem));
+            Console.WriteLine(string.Format("Iteration: {0} Create BloomFile Complete: {1} Memory Delta: {2}", iteration, DateTime.Now, GC.GetTotalMemory(true) - allocMemory));
 
-            return bf;
+            return bloomFile;
         }
 
-        private static void _bulkCreateFromKeyFile(string keyFilePath, BloomFile bf, int iteration, int pktSz, int keyStartNumber, int keysToCreate, int modSave, List<HashKey> savedKeysList)
+        private static void _bulkCreateFromKeyFile(string keyFilePath, BloomFile bloomFile, int iteration, int pktSz, int keyStartNumber, int keysToCreate, int modSave, List<HashKey> savedKeysList)
         {
             int million = 1000000;
-            long mem = GC.GetTotalMemory(true);
+            long allocMemory = GC.GetTotalMemory(true);
             var timeStart = DateTime.Now;
             var bufferBytes = new byte[pktSz];
             var key = new HashKey();
@@ -480,19 +480,19 @@ namespace Phrenologix
             {
                 fixed (byte* bufferBytesPtr = bufferBytes)
                 {
-                    var fs = File.OpenRead(keyFilePath);
+                    var fileStream = File.OpenRead(keyFilePath);
 
-                    fs.Position = keyStartNumber * 20;
+                    fileStream.Position = keyStartNumber * 20;
 
-                    using (var br = new BinaryReader(fs))
+                    using (var binaryReader = new BinaryReader(fileStream))
                     {
                         for (int i = 1; i <= keysToCreate; i++)
                         {
-                            key.uint1 = br.ReadUInt32();
-                            key.uint2 = br.ReadUInt32();
-                            key.uint3 = br.ReadUInt32();
-                            key.uint4 = br.ReadUInt32();
-                            key.uint5 = br.ReadUInt32();
+                            key.uint1 = binaryReader.ReadUInt32();
+                            key.uint2 = binaryReader.ReadUInt32();
+                            key.uint3 = binaryReader.ReadUInt32();
+                            key.uint4 = binaryReader.ReadUInt32();
+                            key.uint5 = binaryReader.ReadUInt32();
 
                             *((uint*)(bufferBytesPtr + 0)) = key.uint1;
                             *((uint*)(bufferBytesPtr + 4)) = key.uint2;
@@ -505,7 +505,7 @@ namespace Phrenologix
                                 savedKeysList.Add(key);
                             }
 
-                            var result = bf.Create(key, bufferBytes, 42, DateTime.MaxValue, 69, false);
+                            var result = bloomFile.Create(key, bufferBytes, 42, DateTime.MaxValue, 69, false);
 
                             if (result != Status.Successful)
                             {
@@ -519,17 +519,17 @@ namespace Phrenologix
                         }
                     }
 
-                    fs = null;
+                    fileStream = null;
                 }
             }
 
-            Console.WriteLine(string.Format("Iteration: {0} Bulk Creates Complete: {1} Memory Delta: {2}", iteration, DateTime.Now, GC.GetTotalMemory(true) - mem));
+            Console.WriteLine(string.Format("Iteration: {0} Bulk Creates Complete: {1} Memory Delta: {2}", iteration, DateTime.Now, GC.GetTotalMemory(true) - allocMemory));
         }
 
-        private static void _bulkUpdateFromKeyFile(string keyFilePath, BloomFile bf, int iteration, int pktSz, int keyStartNumber, int keysToUpdate)
+        private static void _bulkUpdateFromKeyFile(string keyFilePath, BloomFile bloomFile, int iteration, int pktSz, int keyStartNumber, int keysToUpdate)
         {
             int million = 1000000;
-            long mem = GC.GetTotalMemory(true);
+            long allocMemory = GC.GetTotalMemory(true);
             var timeStart = DateTime.Now;
             var bufferBytes = new byte[pktSz];
             var key = new HashKey();
@@ -540,19 +540,19 @@ namespace Phrenologix
             {
                 fixed (byte* bufferBytesPtr = bufferBytes)
                 {
-                    var fs = File.OpenRead(keyFilePath);
+                    var fileStream = File.OpenRead(keyFilePath);
 
-                    fs.Position = keyStartNumber * 20;
+                    fileStream.Position = keyStartNumber * 20;
 
-                    using (var br = new BinaryReader(fs))
+                    using (var binaryReader = new BinaryReader(fileStream))
                     {
                         for (int i = 1; i <= keysToUpdate; i++)
                         {
-                            key.uint1 = br.ReadUInt32();
-                            key.uint2 = br.ReadUInt32();
-                            key.uint3 = br.ReadUInt32();
-                            key.uint4 = br.ReadUInt32();
-                            key.uint5 = br.ReadUInt32();
+                            key.uint1 = binaryReader.ReadUInt32();
+                            key.uint2 = binaryReader.ReadUInt32();
+                            key.uint3 = binaryReader.ReadUInt32();
+                            key.uint4 = binaryReader.ReadUInt32();
+                            key.uint5 = binaryReader.ReadUInt32();
 
                             *((uint*)(bufferBytesPtr + 0)) = key.uint1;
                             *((uint*)(bufferBytesPtr + 4)) = key.uint2;
@@ -562,7 +562,7 @@ namespace Phrenologix
 
                             DateTime timestamp = DateTime.MaxValue;
                             int versionNo = 0;
-                            var result = bf.Update(key, bufferBytes, 42, ref timestamp, ref versionNo, true);
+                            var result = bloomFile.Update(key, bufferBytes, 42, ref timestamp, ref versionNo, true);
 
                             if (result != Status.Successful)
                             {
@@ -576,17 +576,17 @@ namespace Phrenologix
                         }
                     }
 
-                    fs = null;
+                    fileStream = null;
                 }
             }
 
-            Console.WriteLine(string.Format("Iteration: {0} Bulk Updates Complete: {1} Memory Delta: {2}", iteration, DateTime.Now, GC.GetTotalMemory(true) - mem));
+            Console.WriteLine(string.Format("Iteration: {0} Bulk Updates Complete: {1} Memory Delta: {2}", iteration, DateTime.Now, GC.GetTotalMemory(true) - allocMemory));
         }
 
-        private static void _bulkMixedMT(BloomFile bf, int iteration, int numThreads, int pktSz, int keysToCreateCount, int modSave, int keysToSaveCount,
+        private static void _bulkMixedMT(BloomFile bloomFile, int iteration, int numThreads, int pktSz, int keysToCreateCount, int modSave, int keysToSaveCount,
             List<_keyTracker> savedKeysList, int createPct, int readPct, int updatePct, int deletePct, int biasPct)
         {
-            long mem = GC.GetTotalMemory(true);
+            long allocMemory = GC.GetTotalMemory(true);
             var timeStart = DateTime.Now;
 
             Console.WriteLine(string.Format("Iteration: {0} Bulk Mixed Start: {1}", iteration, timeStart));
@@ -636,7 +636,7 @@ namespace Phrenologix
                 var threadMixedVars = new _threadMixedVars
                 {
                     pktSz = pktSz,
-                    bf = bf,
+                    bloomFile = bloomFile,
                     iteration = iteration,
                     keysToSaveCount = keysToSaveCount / numThreads,
                     keysToCreateCount = keysToCreateCount / numThreads,
@@ -644,7 +644,7 @@ namespace Phrenologix
                     barrier = barrier,
                     pctTable = pctTable,
                     biasPct = biasPct,
-                    tID = i + 1
+                    threadId = i + 1
                 };
 
                 threadMixedVarsArray[i] = threadMixedVars;
@@ -666,20 +666,20 @@ namespace Phrenologix
 
             threadMixedVarsArray = null;
 
-            Console.WriteLine(string.Format("\r\nIteration: {0} Bulk Mixed Complete: {1}, Keys Saved: {2} Memory Delta: {3}", iteration, DateTime.Now, savedKeysList.Count, GC.GetTotalMemory(true) - mem));
+            Console.WriteLine(string.Format("\r\nIteration: {0} Bulk Mixed Complete: {1}, Keys Saved: {2} Memory Delta: {3}", iteration, DateTime.Now, savedKeysList.Count, GC.GetTotalMemory(true) - allocMemory));
         }
 
         private static void _bulkMixedMTProc(object o)
         {
-            _threadMixedVars tVars = (_threadMixedVars)o;
+            _threadMixedVars threadVars = (_threadMixedVars)o;
 
-            var bufferBytesSm = new byte[(int)(tVars.pktSz * 0.8)];
-            var bufferBytes = new byte[tVars.pktSz];
-            var bufferBytesLg = new byte[(int)(tVars.pktSz * 1.2)];
+            var bufferBytesSm = new byte[(int)(threadVars.pktSz * 0.8)];
+            var bufferBytes = new byte[threadVars.pktSz];
+            var bufferBytesLg = new byte[(int)(threadVars.pktSz * 1.2)];
             var million = 1000000;
             var key = new HashKey();
 
-            tVars.barrier.SignalAndWait();
+            threadVars.barrier.SignalAndWait();
 
             _startCounting();
 
@@ -692,21 +692,21 @@ namespace Phrenologix
                 fixed (byte* bufferBytesPtrSm = bufferBytesSm)
                 fixed (byte* bufferBytesPtrNm = bufferBytes)
                 {
-                    for (int i = 1; i <= tVars.keysToCreateCount; )
+                    for (int i = 1; i <= threadVars.keysToCreateCount; )
                     {
                         byte* bufferBytesPtr = bufferBytesPtrNm;
 
                         int action;
                         int idx = -1;
 
-                        action = tVars.pctTable[localOpsCnt++ % 100];
+                        action = threadVars.pctTable[localOpsCnt++ % 100];
 
                         if (action != 'C')
                         {
-                            if (tVars.savedKeysList.Count >= 10000 && tVars.biasPct > -1)
+                            if (threadVars.savedKeysList.Count >= 10000 && threadVars.biasPct > -1)
                             {
-                                int sampleSize = (int)((tVars.biasPct / 100.0) * tVars.savedKeysList.Count);
-                                int startIdx = tVars.savedKeysList.Count - sampleSize - 1;
+                                int sampleSize = (int)((threadVars.biasPct / 100.0) * threadVars.savedKeysList.Count);
+                                int startIdx = threadVars.savedKeysList.Count - sampleSize - 1;
                                 idx = sampleSize / ((i % 10) + 1) + startIdx;
                             }
                             else
@@ -730,7 +730,7 @@ namespace Phrenologix
 
                             int version = 69;
                             double before = _stw.ElapsedMilliseconds;
-                            var result = tVars.bf.Create(key, bufferBytes, 42, DateTime.MaxValue, version, false);
+                            var result = threadVars.bloomFile.Create(key, bufferBytes, 42, DateTime.MaxValue, version, false);
                             double after = _stw.ElapsedMilliseconds;
 
                             if (result != Status.Successful)
@@ -743,9 +743,9 @@ namespace Phrenologix
 
                             Interlocked.Add(ref _createLatency, (long)((after - before) * 1000));
 
-                            if (i % tVars.modSave == 0 && tVars.savedKeysList.Count < tVars.keysToSaveCount)
+                            if (i % threadVars.modSave == 0 && threadVars.savedKeysList.Count < threadVars.keysToSaveCount)
                             {
-                                tVars.savedKeysList.Add(new _keyTracker() { key = key, version = version });
+                                threadVars.savedKeysList.Add(new _keyTracker() { key = key, version = version });
                             }
 
                             i++;
@@ -758,10 +758,10 @@ namespace Phrenologix
                             byte[] dataBytes;
                             _keyTracker keyTracker;
 
-                            keyTracker = tVars.savedKeysList[idx];
+                            keyTracker = threadVars.savedKeysList[idx];
 
                             double before = _stw.ElapsedMilliseconds;
-                            var result = tVars.bf.Read(keyTracker.key, out dataBytes, out recordType, out timestamp, out versionNo);
+                            var result = threadVars.bloomFile.Read(keyTracker.key, out dataBytes, out recordType, out timestamp, out versionNo);
                             double after = _stw.ElapsedMilliseconds;
 
                             if (result == Status.KeyFoundButMarkedDeleted)
@@ -807,7 +807,7 @@ namespace Phrenologix
                         }
                         else if (action == 'U')
                         {
-                            var keyTracker = tVars.savedKeysList[idx];
+                            var keyTracker = threadVars.savedKeysList[idx];
 
                             if (keyTracker.deleted == false)
                             {
@@ -834,7 +834,7 @@ namespace Phrenologix
 
                                 var timestamp = DateTime.MaxValue;
                                 double before = _stw.ElapsedMilliseconds;
-                                var result = tVars.bf.Update(keyTracker.key, buffer, 42, ref timestamp, ref keyTracker.version, false);
+                                var result = threadVars.bloomFile.Update(keyTracker.key, buffer, 42, ref timestamp, ref keyTracker.version, false);
                                 double after = _stw.ElapsedMilliseconds;
 
                                 if (result != Status.Successful)
@@ -850,12 +850,12 @@ namespace Phrenologix
                         }
                         else // action == 'D'
                         {
-                            var keyTracker = tVars.savedKeysList[idx];
+                            var keyTracker = threadVars.savedKeysList[idx];
 
                             if (keyTracker.deleted == false)
                             {
                                 double before = _stw.ElapsedMilliseconds;
-                                var result = tVars.bf.Delete(keyTracker.key, false);
+                                var result = threadVars.bloomFile.Delete(keyTracker.key, false);
                                 double after = _stw.ElapsedMilliseconds;
 
                                 if (result == Status.KeyFoundButMarkedDeleted)
@@ -881,22 +881,22 @@ namespace Phrenologix
                             double secs = _stw.ElapsedMilliseconds / 1000.0;
 
                             Console.WriteLine(string.Format("\r\nIteration: {0} Bulk Mixed Test Stats [CRUD: {10} CRUDtps: {1:0} Ctps: {2:0} ({3:0}µs) Rtps: {4:0} ({5:0}µs) Utps: {6:0} ({7:0}µs) Dtps: {8:0} ({9:0}µs)]",
-                                tVars.iteration, _totalOps / secs, _itemsCreated / secs, _createLatency / _itemsCreated, _itemsRead / secs, _readLatency / _itemsRead,
+                                threadVars.iteration, _totalOps / secs, _itemsCreated / secs, _createLatency / _itemsCreated, _itemsRead / secs, _readLatency / _itemsRead,
                                     _itemsUpdated / secs, _updateLatency / _itemsUpdated, _itemsDeleted / secs, _deleteLatency / _itemsDeleted, _totalOps));
 
-                            for (int tid = 0; tid < _doStats.Length; tid++)
+                            for (int threadId = 0; threadId < _doStats.Length; threadId++)
                             {
-                                _doStats[tid] = true;
+                                _doStats[threadId] = true;
                             }
                         }
 
-                        if (_doStats[tVars.tID - 1] == true)
+                        if (_doStats[threadVars.threadId - 1] == true)
                         {
-                            _doStats[tVars.tID - 1] = false;
+                            _doStats[threadVars.threadId - 1] = false;
 
-                            Console.WriteLine(string.Format("Iteration: {0} tID: {7} Reported Stats [C: {1} R: {2} U: {3} D: {4} FRP: {5:0.00} XBY: {6}]",
-                                tVars.iteration, tVars.bf.ItemsCreated, tVars.bf.ItemsRead, tVars.bf.ItemsUpdated, tVars.bf.ItemsDeleted,
-                                    tVars.bf.FragmentationPercent, tVars.bf.ItemBytesExtant, tVars.tID));
+                            Console.WriteLine(string.Format("Iteration: {0} threadId: {7} Reported Stats [C: {1} R: {2} U: {3} D: {4} FRP: {5:0.00} XBY: {6}]",
+                                threadVars.iteration, threadVars.bloomFile.ItemsCreated, threadVars.bloomFile.ItemsRead, threadVars.bloomFile.ItemsUpdated, threadVars.bloomFile.ItemsDeleted,
+                                    threadVars.bloomFile.FragmentationPercent, threadVars.bloomFile.ItemBytesExtant, threadVars.threadId));
 
                             //File.AppendAllText("performance.log", string.Format("{0},{1:0},{2:0},{3:0},{4:0}\r\n", _itemsCreated, _totalOps / secs, _itemsCreated / secs , _itemsRead / secs, _itemsUpdated / secs));
                         }
@@ -908,21 +908,21 @@ namespace Phrenologix
         private static BloomFile _loadBloomFile(string filePath, int iteration)
         {
             DateTime timeStart = DateTime.Now;
-            long mem = GC.GetTotalMemory(true);
+            long allocMemory = GC.GetTotalMemory(true);
 
             Console.WriteLine(string.Format("Iteration: {0} Loading Start: {1}", iteration, DateTime.Now));
 
-            var bf = BloomFile.LoadBloomFile(filePath);
+            var bloomFile = BloomFile.LoadBloomFile(filePath);
 
-            bf.OnFlushingStart += _startFlushing;
-            bf.OnFlushingStop += _stopFlushing;
+            bloomFile.OnFlushingStart += _startFlushing;
+            bloomFile.OnFlushingStop += _stopFlushing;
 
-            Console.WriteLine(string.Format("Iteration: {0} Loading Complete: {1} Memory Delta: {2}", iteration, DateTime.Now, GC.GetTotalMemory(true) - mem));
+            Console.WriteLine(string.Format("Iteration: {0} Loading Complete: {1} Memory Delta: {2}", iteration, DateTime.Now, GC.GetTotalMemory(true) - allocMemory));
 
-            return bf;
+            return bloomFile;
         }
 
-        private static void _bulkReadKeysFromSavedKeysList(BloomFile bf, int iteration, List<HashKey> savedKeyList)
+        private static void _bulkReadKeysFromSavedKeysList(BloomFile bloomFile, int iteration, List<HashKey> savedKeyList)
         {
             int tenk = 10000;
             var timeStart = DateTime.Now;
@@ -940,7 +940,7 @@ namespace Phrenologix
 
                 var key = savedKeyList[i - 1];
 
-                var result = bf.Read(key, out dataBytes, out recordType, out timestamp, out versionNo);
+                var result = bloomFile.Read(key, out dataBytes, out recordType, out timestamp, out versionNo);
 
                 if (result != Status.Successful)
                 {
@@ -971,13 +971,13 @@ namespace Phrenologix
             }
 
 #if TRACKFP
-            Console.WriteLine(string.Format("Iteration: {0} Bulk Reads Complete: {1} Time Delta: {2} False: {2}", iteration, keysSavedCount, DateTime.Now - timeStart, bf.FalsePositives()));
+            Console.WriteLine(string.Format("Iteration: {0} Bulk Reads Complete: {1} Time Delta: {2} False: {2}", iteration, keysSavedCount, DateTime.Now - timeStart, bloomFile.FalsePositives()));
 #else
             Console.WriteLine(string.Format("Iteration: {0} Bulk Reads Complete: {1} Time Delta: {2}", iteration, keysSavedCount, DateTime.Now - timeStart));
 #endif
         }
 
-        private static void _bulkReadKeysMTFromSavedKeysList(BloomFile bf, int iteration, int numThreads, int keysToRead, List<_keyTracker> savedKeyList)
+        private static void _bulkReadKeysMTFromSavedKeysList(BloomFile bloomFile, int iteration, int numThreads, int keysToRead, List<_keyTracker> savedKeyList)
         {
             var timeStart = DateTime.Now;
 
@@ -991,10 +991,10 @@ namespace Phrenologix
             {
                 var threadReadVars = new _threadReadVars
                 {
-                    bf = bf,
+                    bloomFile = bloomFile,
                     iteration = iteration,
                     barrier = barrier,
-                    tID = i + 1
+                    threadId = i + 1
                 };
 
                 threadReadVarsArray[i] = threadReadVars;
@@ -1028,7 +1028,7 @@ namespace Phrenologix
             threadReadVarsArray = null;
 
 #if TRACKFP
-            Console.WriteLine(string.Format("Iteration: {0} Bulk Reads MT Complete: {1} Time Delta: {2} False: {2}", iteration, _itemsRead, DateTime.Now - timeStart, bf.FalsePositives()));
+            Console.WriteLine(string.Format("Iteration: {0} Bulk Reads MT Complete: {1} Time Delta: {2} False: {2}", iteration, _itemsRead, DateTime.Now - timeStart, bloomFile.FalsePositives()));
 #else
             Console.WriteLine(string.Format("Iteration: {0} Bulk Reads MT Complete: {1} Time Delta: {2}", iteration, _itemsRead, DateTime.Now - timeStart));
 #endif
@@ -1036,15 +1036,15 @@ namespace Phrenologix
 
         private static void _bulkReadsMTProc(object o)
         {
-            _threadReadVars tVars = (_threadReadVars)o;
+            _threadReadVars threadReadVars = (_threadReadVars)o;
 
             int hundk = 100000;
 
-            tVars.barrier.SignalAndWait();
+            threadReadVars.barrier.SignalAndWait();
 
             var timeStart = DateTime.Now;
 
-            var keysSavedCount = tVars.savedKeysList.Count;
+            var keysSavedCount = threadReadVars.savedKeysList.Count;
 
             for (int i = 1; i <= keysSavedCount; i++)
             {
@@ -1053,9 +1053,9 @@ namespace Phrenologix
                 int versionNo;
                 byte[] dataBytes;
 
-                var keyTracker = tVars.savedKeysList[i - 1];
+                var keyTracker = threadReadVars.savedKeysList[i - 1];
 
-                var result = tVars.bf.Read(keyTracker.key, out dataBytes, out recordType, out timestamp, out versionNo);
+                var result = threadReadVars.bloomFile.Read(keyTracker.key, out dataBytes, out recordType, out timestamp, out versionNo);
 
                 if (result == Status.KeyFoundButMarkedDeleted)
                 {
@@ -1097,7 +1097,7 @@ namespace Phrenologix
 
                 if (readNow % hundk == 0)
                 {
-                    Console.WriteLine(string.Format("Iteration: {0} Read: {1} Time Delta: {2}", tVars.iteration, readNow, DateTime.Now - timeStart));
+                    Console.WriteLine(string.Format("Iteration: {0} Read: {1} Time Delta: {2}", threadReadVars.iteration, readNow, DateTime.Now - timeStart));
                 }
             }
         }

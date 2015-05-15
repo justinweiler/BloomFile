@@ -180,7 +180,7 @@ namespace Phrenologix
             int totalBufferSize = ioConstants.computeTotalBufferSize(_branchKeyCapacities[0], _settings.averageDataItemSize, _settings.averageDataItemSizeSlack, out bloomFileBlockStartPosition);
 
             // setup blossom storage, it needs the ACTUAL int key capacity and real buffer size
-            _blossomFileStorage = new fileStorage(_treeID, filePath + ".bf", totalBufferSize, _settings.initialFileSize, _settings.growFileSize);
+            _blossomFileStorage = new fileStorage(_treeID, filePath + ".blossom", totalBufferSize, _settings.initialFileSize, _settings.growFileSize);
 
             // create blossom IO helpers
             _blossomCreator = new blossomReaderWriter(_blossomFileStorage, _branchKeyCapacities[0], totalBufferSize, bloomFileBlockStartPosition, true);
@@ -189,8 +189,8 @@ namespace Phrenologix
             _blossomDeleter = _blossomReader;
 
             // setup branch storage
-            var ctSize = 128 * 1024 * 1024;
-            _branchFileStorage = new fileStorage(_treeID, _filePath + ".ct", 0, ctSize, ctSize);
+            var branchSize = 128 * 1024 * 1024;
+            _branchFileStorage = new fileStorage(_treeID, _filePath + ".branch", 0, branchSize, branchSize);
             _branchReaderWriter = new branchReaderWriter(_branchFileStorage);
 
             if (reconstruct == false)

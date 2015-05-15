@@ -71,18 +71,18 @@ namespace Phrenologix
                 int dataSlotSize = (int)(dataBytes.Length * slackFactor);
 
                 // write bloomFile header
-                *((uint*)(bloomFileHeaderBytes + 0)) = ioConstants.startOfBloomFileMarker; // start of bloomFile marker BLMF
-                *(bloomFileHeaderBytes + 4) = recordType;                         // write recordType
-                *((long*)(bloomFileHeaderBytes + 5)) = timestamp.ToBinary();               // write timestamp
-                *((int*)(bloomFileHeaderBytes + 13)) = versionNo;                          // write versionNo
+                *((uint*)(bloomFileHeaderBytes + 0)) = ioConstants.startOfBloomFileMarker;  // start of bloomFile marker BLMF
+                *(bloomFileHeaderBytes + 4) = recordType;                                   // write recordType
+                *((long*)(bloomFileHeaderBytes + 5)) = timestamp.ToBinary();                // write timestamp
+                *((int*)(bloomFileHeaderBytes + 13)) = versionNo;                           // write versionNo
                 *((uint*)(bloomFileHeaderBytes + 17)) = key.uint1;                          // write key.uint1
                 *((uint*)(bloomFileHeaderBytes + 21)) = key.uint2;                          // write key.uint2
                 *((uint*)(bloomFileHeaderBytes + 25)) = key.uint3;                          // write key.uint3
                 *((uint*)(bloomFileHeaderBytes + 29)) = key.uint4;                          // write key.uint4
                 *((uint*)(bloomFileHeaderBytes + 33)) = key.uint5;                          // write key.uint5
                 *((uint*)(bloomFileHeaderBytes + 37)) = checksum;                           // write checksum
-                *((int*)(bloomFileHeaderBytes + 41)) = dataSlotSize;                       // write data slot size
-                *((int*)(bloomFileHeaderBytes + 45)) = dataBytes.Length;                   // write data length
+                *((int*)(bloomFileHeaderBytes + 41)) = dataSlotSize;                        // write data slot size
+                *((int*)(bloomFileHeaderBytes + 45)) = dataBytes.Length;                    // write data length
 
                 // write data and slack padding
                 var bloomFileDataBytes = bloomFileHeaderBytes + ioConstants.bloomFileOverhead;
@@ -363,8 +363,8 @@ namespace Phrenologix
             {
                 // initialize or reset buffer
                 *((uint*)(blossomHeaderBytes + 0)) = ioConstants.startOfBlossomMarker;  // start of blossom marker BLSM
-                *((int*)(blossomHeaderBytes + 4)) = _blossomID;                        // blossom id
-                *((int*)(blossomHeaderBytes + 8)) = computeBlossomFileSize();          // actual blossom file size
+                *((int*)(blossomHeaderBytes + 4)) = _blossomID;                         // blossom id
+                *((int*)(blossomHeaderBytes + 8)) = computeBlossomFileSize();           // actual blossom file size
                 *((int*)(blossomHeaderBytes + 12)) = _keysUsed;                         // keys used
 
                 var keyDataBytes = blossomHeaderBytes + ioConstants.blossomOverhead;
@@ -483,11 +483,11 @@ namespace Phrenologix
 
         unsafe private static HashKey _extractHashKey(uint* keyDataBytes, int i, out int offset)
         {
-            uint uint1 = *(keyDataBytes + (6 * i) + 0);            // read key uint1       
-            uint uint2 = *(keyDataBytes + (6 * i) + 1);            // read key uint2       
-            uint uint3 = *(keyDataBytes + (6 * i) + 2);            // read key uint3       
-            uint uint4 = *(keyDataBytes + (6 * i) + 3);            // read key uint4       
-            uint uint5 = *(keyDataBytes + (6 * i) + 4);            // read key uint5       
+            uint uint1 = *(keyDataBytes + (6 * i) + 0);        // read key uint1       
+            uint uint2 = *(keyDataBytes + (6 * i) + 1);        // read key uint2       
+            uint uint3 = *(keyDataBytes + (6 * i) + 2);        // read key uint3       
+            uint uint4 = *(keyDataBytes + (6 * i) + 3);        // read key uint4       
+            uint uint5 = *(keyDataBytes + (6 * i) + 4);        // read key uint5       
             offset = *((int*)(keyDataBytes + (6 * i) + 5));    // read offset       
 
             return new HashKey(uint1, uint2, uint3, uint4, uint5);
@@ -548,7 +548,7 @@ namespace Phrenologix
                 }
 
                 // read rest of bloomFile header
-                recordType = *(bloomFileHeaderBytes + 4);                                 // read recordType
+                recordType = *(bloomFileHeaderBytes + 4);                                // read recordType
                 timestamp = DateTime.FromBinary(*((long*)(bloomFileHeaderBytes + 5)));   // read timestamp
                 versionNo = *((int*)(bloomFileHeaderBytes + 13));                        // read versionNo
                 var uint1 = *((uint*)(bloomFileHeaderBytes + 17));                       // read key uint1       
@@ -564,8 +564,8 @@ namespace Phrenologix
                 }
 
                 // get checksum, slot size, and length
-                var checksum = *((uint*)(bloomFileHeaderBytes + 37));    // read checksum
-                var dataSlotSize = *((int*)(bloomFileHeaderBytes + 41));     // read data slot size
+                var checksum = *((uint*)(bloomFileHeaderBytes + 37));           // read checksum
+                var dataSlotSize = *((int*)(bloomFileHeaderBytes + 41));        // read data slot size
                 var dataBytesLength = *((int*)(bloomFileHeaderBytes + 45));     // read data length
 
                 // validate data slot size
@@ -648,11 +648,11 @@ namespace Phrenologix
                 // read rest of bloomFile header
                 var oldTimestamp = DateTime.FromBinary(*((long*)(bloomFileHeaderBytes + 5)));   // read timestamp
                 var oldVersionNo = *((int*)(bloomFileHeaderBytes + 13));                        // read versionNo
-                var uint1 = *((uint*)(bloomFileHeaderBytes + 17));                       // read key uint1       
-                var uint2 = *((uint*)(bloomFileHeaderBytes + 21));                       // read key uint2       
-                var uint3 = *((uint*)(bloomFileHeaderBytes + 25));                       // read key uint3       
-                var uint4 = *((uint*)(bloomFileHeaderBytes + 29));                       // read key uint4       
-                var uint5 = *((uint*)(bloomFileHeaderBytes + 33));                       // read key uint5       
+                var uint1 = *((uint*)(bloomFileHeaderBytes + 17));                              // read key uint1       
+                var uint2 = *((uint*)(bloomFileHeaderBytes + 21));                              // read key uint2       
+                var uint3 = *((uint*)(bloomFileHeaderBytes + 25));                              // read key uint3       
+                var uint4 = *((uint*)(bloomFileHeaderBytes + 29));                              // read key uint4       
+                var uint5 = *((uint*)(bloomFileHeaderBytes + 33));                              // read key uint5       
 
                 // vaidate recovered key
                 if (uint1 != key.uint1 || uint2 != key.uint2 || uint3 != key.uint3 || uint4 != key.uint4 || uint5 != key.uint5)
@@ -709,11 +709,11 @@ namespace Phrenologix
                     checksum = checkSum.compute(dataBytes);
                 }
 
-                *(bloomFileHeaderBytes + 4) = recordType;            // write recordType
-                *((long*)(bloomFileHeaderBytes + 5)) = timestamp.ToBinary();  // write timestamp
-                *((int*)(bloomFileHeaderBytes + 13)) = versionNo;             // write versionNo
-                *((uint*)(bloomFileHeaderBytes + 37)) = checksum;              // write checksum
-                *((int*)(bloomFileHeaderBytes + 45)) = dataBytes.Length;      // write new length
+                *(bloomFileHeaderBytes + 4) = recordType;                       // write recordType
+                *((long*)(bloomFileHeaderBytes + 5)) = timestamp.ToBinary();    // write timestamp
+                *((int*)(bloomFileHeaderBytes + 13)) = versionNo;               // write versionNo
+                *((uint*)(bloomFileHeaderBytes + 37)) = checksum;               // write checksum
+                *((int*)(bloomFileHeaderBytes + 45)) = dataBytes.Length;        // write new length
 
                 var bloomFileDataBytes = bloomFileHeaderBytes + ioConstants.bloomFileOverhead;
 
